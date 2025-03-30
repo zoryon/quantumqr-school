@@ -1,0 +1,1 @@
+export const ROUTER_URL =  `${process.env.WEBSITE_URL!}/r`

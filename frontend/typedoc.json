@@ -1,0 +1,11 @@
+{
+    "entryPoints": [
+        "./src"
+    ],
+    "out": "docs",
+    "includeVersion": true,
+    "hideGenerator": true,
+    "excludeExternals": true,
+    "excludePrivate": true,
+    "excludeProtected": true
+}

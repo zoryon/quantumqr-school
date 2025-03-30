@@ -1,0 +1,1 @@
+export const FILE_FORMATS = ["svg", "png", "jpg", "jpeg"] as const;
