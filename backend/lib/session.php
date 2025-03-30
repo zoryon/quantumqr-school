@@ -1,5 +1,7 @@
 <?php
 
+// MUST REQUIRE: require_once '../../vendor/autoload.php';
+
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 use Firebase\JWT\ExpiredException;
