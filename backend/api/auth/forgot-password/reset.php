@@ -19,9 +19,9 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
         ->send();
 }
 
-try {
-    $db = DB::getInstance();
+$db = DB::getInstance();
 
+try {
     // Check existing session
     $userId = getIdFromSessionToken($_COOKIE['session_token'] ?? '');
     if ($userId) {

@@ -7,8 +7,6 @@ use Firebase\JWT\Key;
 use Firebase\JWT\ExpiredException;
 use Firebase\JWT\SignatureInvalidException;
 
-$db = DB::getInstance();
-
 // Only allow GET requests
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     $db->setStatus(405)
@@ -32,6 +30,8 @@ if (!$token) {
         ])
         ->send();
 }
+
+$db = DB::getInstance();
 
 try {
     // Decode and validate JWT

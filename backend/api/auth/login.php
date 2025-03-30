@@ -1,4 +1,5 @@
 <?php
+
 require_once '../../vendor/autoload.php';
 require_once '../../db/DB.php';
 
@@ -19,9 +20,9 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     ->send();
 };
 
-try {
-    $db = DB::getInstance();
+$db = DB::getInstance();
 
+try {
     // Lettura del body della richiesta
     $input = json_decode(file_get_contents('php://input'), true);
 
