@@ -1,46 +1,90 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { useParams } from "next/navigation";
 import DownloadButton from "@/components/Buttons/DownloadButton";
 import ScanIncrementer from "@/components/ScanIncrementer";
 import ShareButton from "@/components/Buttons/ShareButton";
 import { ContactPoint, QRCodeTypes, ResultType, VCardResponse } from "@/types";
 import Link from "next/link";
-import { notFound } from "next/navigation";
 import { api } from "@/lib/endpoint-builder";
 
 const type: QRCodeTypes = "vCards";
 
-export default async function VCardPage({
-    params: paramsPromise,
-}: {
-    params: Promise<{ id: string }>;
-}) {
-    const params = await paramsPromise;
-    const { id } = params;
-    if (!id) return notFound();
+const VCardPage = () => {
+    const params = useParams();
+    const id = params.id as string;
+    const [qrCode, setQrCode] = useState<VCardResponse | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
-    const qrCodeId = Number(id);
-    if (isNaN(qrCodeId)) return notFound();
-
-    const res: ResultType = await fetch(
-        `${process.env.WEBSITE_URL}${api.qrcodes.find.query({ id: qrCodeId, type: type})}`, { 
-            method: "GET",
-            headers: { "Content-Type": "application/json" },
+    useEffect(() => {
+        if (!id || isNaN(Number(id))) {
+            setError("Invalid QR code ID");
+            setLoading(false);
+            return;
         }
-    ).then((res) => res.json());
 
-    if (!res.success) return notFound();
+        const qrCodeId = Number(id);
 
-    const qrCode: VCardResponse = res.body;
+        const fetchData = async () => {
+            try {
+                const response = await fetch(
+                    `${api.qrcodes.find.query({
+                        id: qrCodeId,
+                        type: type,
+                    })}`,
+                    {
+                        method: "GET",
+                        headers: { "Content-Type": "application/json" },
+                    }
+                );
+
+                if (!response.ok) throw new Error("Fetch failed");
+
+                const result: ResultType = await response.json();
+
+                if (result.success) {
+                    setQrCode(result.body);
+                } else {
+                    setError("QR code not found");
+                }
+            } catch (err) {
+                setError("Failed to load QR code data");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchData();
+    }, [id]);
+
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+                <div className="text-indigo-400 animate-pulse">Loading hologram...</div>
+            </div>
+        );
+    }
+
+    if (error || !qrCode) {
+        return (
+            <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+                <div className="text-red-400">{error || "QR code not found"}</div>
+            </div>
+        );
+    }
 
     const contactPoints: ContactPoint[] = [
         { icon: "fa-envelope", value: qrCode.email, type: "mailto" },
         { icon: "fa-phone", value: qrCode.phoneNumber, type: "tel" },
         { icon: "fa-map-marker-alt", value: qrCode.address },
-        { icon: "fa-globe", value: qrCode.websiteUrl, type: "url" }
+        { icon: "fa-globe", value: qrCode.websiteUrl, type: "url" },
     ].filter((item): item is ContactPoint => Boolean(item.value));
 
     return (
         <div className="min-h-screen bg-gray-900 overflow-hidden relative">
-            <ScanIncrementer qrCodeId={qrCodeId} />
+            <ScanIncrementer qrCodeId={qrCode?.id} />
 
             {/* Dynamic Gradient Background */}
             <div className="absolute inset-0 opacity-40">
@@ -56,7 +100,10 @@ export default async function VCardPage({
                     {/* Floating Particles */}
                     <div className="absolute inset-0 animate-particle-flow">
                         {[...Array(30)].map((_, i) => (
-                            <div key={i} className="absolute w-1 h-1 bg-indigo-400/30 rounded-full" />
+                            <div
+                                key={i}
+                                className="absolute w-1 h-1 bg-indigo-400/30 rounded-full"
+                            />
                         ))}
                     </div>
 
@@ -69,7 +116,9 @@ export default async function VCardPage({
                                 {qrCode.name ? (
                                     <div className="text-center p-4 z-10">
                                         <i className="fas fa-cube text-4xl text-indigo-400/50 mb-3 animate-float" />
-                                        <p className="text-sm font-medium text-indigo-400">{qrCode.name}</p>
+                                        <p className="text-sm font-medium text-indigo-400">
+                                            {qrCode.name}
+                                        </p>
                                     </div>
                                 ) : (
                                     <div className="text-5xl font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent z-10">
@@ -82,12 +131,12 @@ export default async function VCardPage({
 
                             <div className="text-center space-y-10">
                                 <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-200 to-purple-200 bg-clip-text text-transparent">
-                                    {qrCode.firstName} <span className="animate-blink">⚡</span> {qrCode.lastName}
+                                    {qrCode.firstName} <span className="animate-blink">⚡</span>{" "}
+                                    {qrCode.lastName}
                                 </h1>
 
                                 {/* Social Table */}
                                 <div className="flex justify-center space-x-3">
-                                    {/* Download Button */}
                                     <DownloadButton
                                         url={qrCode.url}
                                         type={qrCode.type}
@@ -95,12 +144,13 @@ export default async function VCardPage({
                                         lastName={qrCode.lastName}
                                         icon="fas fa-cloud-arrow-down mr-3"
                                         isShadBtn={false}
-                                        className="px-6 py-3 rounded-full bg-gradient-to-br from-indigo-600 to-purple-600 hover:from-indigo-500
-                                         hover:to-purple-500 transition-all shadow-lg shadow-indigo-500/20 flex items-center cursor-pointer"
+                                        className="px-6 py-3 rounded-full bg-gradient-to-br from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 transition-all shadow-lg shadow-indigo-500/20 flex items-center cursor-pointer"
                                     />
-                                    {/* Share Icon */}
                                     <ShareButton
-                                        url={process.env.WEBSITE_URL + `/qrcodes/vcards/${qrCode.qrCodeId}`}
+                                        url={
+                                            process.env.NEXT_PUBLIC_WEBSITE_URL +
+                                            `/qrcodes/vcards/${qrCode.qrCodeId}`
+                                        }
                                         firstName={qrCode.firstName}
                                         lastName={qrCode.lastName}
                                     />
@@ -123,10 +173,12 @@ export default async function VCardPage({
                                             </div>
                                             <div className="flex-1">
                                                 {item.type ? (
-                                                    // If url -> do not use type:value but only value
-                                                    // Otherwise use type:value
                                                     <Link
-                                                        href={item.type !== "url" ? `${item.type}:${item.value}` : item.value}
+                                                        href={
+                                                            item.type !== "url"
+                                                                ? `${item.type}:${item.value}`
+                                                                : item.value
+                                                        }
                                                         target={item.type === "url" ? "_blank" : undefined}
                                                         className="text-lg font-medium text-gray-100 hover:text-indigo-400 transition-colors flex items-center"
                                                     >
@@ -134,7 +186,9 @@ export default async function VCardPage({
                                                         <i className="fas fa-external-link-alt ml-2 text-sm opacity-70" />
                                                     </Link>
                                                 ) : (
-                                                    <p className="text-lg font-medium text-gray-100">{item.value}</p>
+                                                    <p className="text-lg font-medium text-gray-100">
+                                                        {item.value}
+                                                    </p>
                                                 )}
                                                 <div className="mt-2 flex items-center space-x-2">
                                                     <span className="text-xs font-mono text-indigo-400/70 uppercase tracking-widest">
@@ -155,7 +209,9 @@ export default async function VCardPage({
                                         <i className="fas fa-wave-pulse text-purple-400 text-2xl" />
                                     </div>
                                     <div>
-                                        <h3 className="text-lg font-semibold text-gray-100">Quantum Stats</h3>
+                                        <h3 className="text-lg font-semibold text-gray-100">
+                                            Quantum Stats
+                                        </h3>
                                         <div className="flex space-x-6 mt-2">
                                             <div className="text-indigo-400">
                                                 <span className="text-2xl font-bold">{qrCode.scans}</span>
@@ -185,11 +241,13 @@ export default async function VCardPage({
                 <p className="text-sm text-gray-500 font-mono">
                     <span className="bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">
                         ▲ QUANTUMQR v1.0
-                    </span> •
-                    <span className="mx-2">⚡</span>
+                    </span>{" "}
+                    •<span className="mx-2">⚡</span>
                     Powered by Zoryon
                 </p>
             </footer>
         </div>
     );
 }
+
+export default VCardPage;

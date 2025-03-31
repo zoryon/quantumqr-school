@@ -24,7 +24,6 @@ const Navbar = () => {
                 setUserData(data);
             } catch (error) {
                 console.error(error);
-                window.location.href = "/login";
             }
         };
         fetchSessionUser();

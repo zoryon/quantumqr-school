@@ -15,7 +15,7 @@ import NotFound from "@/app/(core)/not-found";
 import { isQRCodeType } from "@/lib/qrcode";
 import { QR_CODES_TYPES_ARRAY } from "@/constants";
 
-export default function EditVCardPage() {
+const EditVCardPage = () => {
     const params = useParams();
     const type = params.type as string;
     const id = params.id as string;
@@ -105,3 +105,5 @@ const RenderEditor = ({ type, qrCode }: { type: QRCodeTypes; qrCode: any }) => {
             return <div className="text-red-500">Unsupported QR code type</div>;
     }
 };
+
+export default EditVCardPage;
