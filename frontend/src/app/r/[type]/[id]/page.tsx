@@ -1,39 +1,84 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import ScanIncrementer from "@/components/ScanIncrementer";
 import { QR_CODES_TYPES_ARRAY } from "@/constants";
 import { api } from "@/lib/endpoint-builder";
 import { isQRCodeType } from "@/lib/qrcode";
 import { ResultType } from "@/types";
-import { notFound } from "next/navigation";
+import NotFound from "@/app/(core)/not-found";
+import { useParams } from "next/navigation";
 
-export default async function RedirectPage({
-    params: paramsPromise,
-}: {
-    params: Promise<{ type: string, id: string }>;
-}) {
-    const params = await paramsPromise;
+const RedirectPage = () => {
+    const params = useParams();
+    const [notFound, setNotFound] = useState(false);
+    const [qrCode, setQrCode] = useState<{ websiteUrl: string } | null>(null);
+
     const { type, id } = params;
-    if (!type || !id) return notFound();
 
-    const normalizedType = QR_CODES_TYPES_ARRAY.find(t => t.toLowerCase() === type.toLowerCase());
-    if (!normalizedType || !isQRCodeType(normalizedType)) return notFound();
+    useEffect(() => {
+        // Validate params
+        if (!type || !id) {
+            setNotFound(true);
+            return;
+        }
 
-    const qrCodeId = Number(id);
-    if (isNaN(qrCodeId)) return notFound();
+        // Normalize type
+        const normalizedType = QR_CODES_TYPES_ARRAY.find(
+            (t) => t.toLowerCase() === (type as string).toLowerCase()
+        );
+        if (!normalizedType || !isQRCodeType(normalizedType)) {
+            setNotFound(true);
+            return;
+        }
 
-    const res: ResultType = await fetch(
-        `${process.env.WEBSITE_URL}${api.qrcodes.find.query({ id: qrCodeId, type: normalizedType })}`, {
-        method: "GET",
-        headers: { "Accept": "application/json" },
+        // Validate ID
+        const qrCodeId = Number(id);
+        if (isNaN(qrCodeId)) {
+            setNotFound(true);
+            return;
+        }
+
+        // Fetch QR code data
+        const fetchData = async () => {
+            try {
+                const response = await fetch(
+                    `${api.qrcodes.find.query({
+                        id: qrCodeId,
+                        type: normalizedType,
+                    })}`,
+                    {
+                        method: "GET",
+                        headers: { Accept: "application/json" },
+                    }
+                );
+
+                const res: ResultType = await response.json();
+
+                if (!res || !res.success) {
+                    setNotFound(true);
+                } else {
+                    setQrCode(res.body);
+                }
+            } catch (error) {
+                console.error("Failed to fetch QR code:", error);
+                setNotFound(true);
+            }
+        };
+
+        fetchData();
+    }, [params]);
+
+    if (notFound) {
+        return <NotFound/>;
     }
-    ).then((res) => res.json());
 
-    if (!res || !res.success) return notFound();
-
-    const qrCode = res.body;
-
-    return (
-        <>
-            <ScanIncrementer qrCodeId={qrCodeId} redirectUrl={qrCode.websiteUrl} />
-        </>
+    return qrCode && (
+        <ScanIncrementer
+            qrCodeId={Number(params.id)}
+            redirectUrl={qrCode.websiteUrl}
+        />
     );
 }
+
+export default RedirectPage;
