@@ -15,7 +15,7 @@ import NotFound from "@/app/(core)/not-found";
 import { isQRCodeType } from "@/lib/qrcode";
 import { QR_CODES_TYPES_ARRAY } from "@/constants";
 
-const EditVCardPage = () => {
+export default function EditVCardPage() {
     const params = useParams();
     const type = params.type as string;
     const id = params.id as string;
@@ -84,9 +84,9 @@ const EditVCardPage = () => {
                 <div className="absolute w-[1200px] h-[1200px] -top-96 -right-96 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 rounded-full animate-gradient-drift" />
             </div>
 
-            <main className="relative mx-auto max-w-7xl px-4 py-12 sm:py-16">
+            <main className="relative mx-auto max-w-7xl px-3 py-12 sm:py-16">
                 <div className="group relative rounded-[2.5rem] border border-gray-800 bg-gray-850/80 backdrop-blur-2xl shadow-2xl shadow-indigo-500/10 overflow-hidden isolate">
-                    <div className="relative grid grid-cols-1 lg:grid-cols-2 gap-8 p-8">
+                    <div className="relative grid grid-cols-1 lg:grid-cols-2 gap-8 px-5 py-8">
                         <RenderEditor type={normalizedType} qrCode={qrCode} />
                     </div>
                 </div>
@@ -105,5 +105,3 @@ const RenderEditor = ({ type, qrCode }: { type: QRCodeTypes; qrCode: any }) => {
             return <div className="text-red-500">Unsupported QR code type</div>;
     }
 };
-
-export default EditVCardPage;

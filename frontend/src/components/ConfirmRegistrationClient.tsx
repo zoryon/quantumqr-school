@@ -20,7 +20,7 @@ const ConfirmRegistrationClient = ({
 
         async function confirmRegistration() {
             try {
-                const res = await fetch(api.auth.register.confirm.query({ token: token }), {
+                const res = await fetch(api.auth.register.confirm.query({ token }), {
                     method: "GET",
                     headers: {
                         "Accept": "application/json",

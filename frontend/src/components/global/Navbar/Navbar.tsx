@@ -13,15 +13,13 @@ const Navbar = () => {
     useEffect(() => {
         const fetchSessionUser = async () => {
             try {
-                const res: ResultType = await fetch(api.users.current.toString(), {
-                    method: "GET",
-                    credentials: "include",
-                }).then(res => res.json());
+                const res: ResultType = await fetch(
+                    api.users.current.toString()
+                ).then(res => res.json());
 
                 if (!res.success) throw new Error("Failed to fetch user session");
-
-                const data: PublicUser = await res.body;
-                setUserData(data);
+                
+                setUserData(res.body as PublicUser);
             } catch (error) {
                 console.error(error);
             }

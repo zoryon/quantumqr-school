@@ -69,3 +69,19 @@ export type QrTypeMapping = {
     model: keyof PrismaClient;
     schema: z.ZodSchema;
 };
+
+/**
+ * Defines the design options for customizing the appearance of the QR code.
+ * 
+ * - `fgColor`: The foreground color of the QR code.
+ * - `bgColor`: The background color of the QR code.
+ * - `logo`: An optional logo file to be embedded in the QR code.
+ * - `logoSize`: The size of the logo in percentage (default is 20%).
+ * - `qrStyle`: The style of the QR code, either "squares" or "dots".
+ */
+export type DesignOptions = {
+    fgColor: string;
+    bgColor: string;
+    logo: File | null;
+    logoSize: number;
+};

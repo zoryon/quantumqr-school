@@ -1,16 +1,13 @@
 "use client";
 
 import { cardDetailsFormSchema, CardDetailsFormValues, classicDetailsFormSchema, ClassicDetailsFormValues } from "@/lib/schemas";
-import { QRCodeTypes } from "@/types";
+import { QRCodeTypes, DesignOptions, QRCode, ResultType } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createContext, useCallback, useContext, useEffect, useState } from "react"
 import { useForm } from "react-hook-form";
-
-// Define types for VCard data and design options for the QR code
-type DesignOptions = {
-    color: string;
-    logo: File | null;
-};
+import { useQrCodeList } from "./use-qrcode-list";
+import { useRouter } from "next/navigation";
+import { api } from "@/lib/endpoint-builder";
 
 // Union type for form values, which can be either for a classic or vCard QR code
 export type FormValues =
@@ -32,13 +29,16 @@ type QrCreatorContextType = {
     handleNext: () => void,
     isPending: boolean,
     setIsPending: React.Dispatch<React.SetStateAction<boolean>>,
-    form: ReturnType<typeof useForm<FormValues>>
+    form: ReturnType<typeof useForm<FormValues>>,
+    handleCreate: () => Promise<void>,
 }
 
 // Initial values for design options
 const initialDesignOptions: DesignOptions = {
-    color: "#000000",
-    logo: null
+    fgColor: "#000000",
+    bgColor: "#FFFFFF",
+    logo: null,
+    logoSize: 20,
 };
 
 // Create a context to share QR code creation state across components
@@ -46,6 +46,9 @@ export const QrCreatorContext = createContext<QrCreatorContextType>(null!);
 
 // Provider component to manage and provide QR code creation state
 export function QrCreatorProvider({ children }: { children: React.ReactNode }) {
+    const { qrCodes, setQrCodes, setResult } = useQrCodeList();
+    const router = useRouter();
+
     const [step, setStep] = useState<number>(1);
     const [qrType, setQrType] = useState<QRCodeTypes>("classics");
     const [created, setCreated] = useState<boolean>(false);
@@ -118,11 +121,93 @@ export function QrCreatorProvider({ children }: { children: React.ReactNode }) {
     // Function to move to the previous step, ensuring the step does not go below 1
     const handlePrev = () => setStep(prev => Math.max(prev - 1, 1));
 
-    // Function to move to the next step, ensuring the step does not exceed 2
+    // Function to move to the next step, ensuring the step does not exceed 3
     const handleNext = () => {
         if (step === 1 && !qrType) return null;
-        setStep(prev => Math.min(prev + 1, 2));
+        setStep(prev => Math.min(prev + 1, 3));
     };
+
+    async function handleCreate() {
+        setIsPending(true);
+
+        // Get form values
+        const formValues = form.getValues();
+
+        // temporary ID for optimistic update
+        const tempId = -Date.now();
+        const previousQrCodes = [...qrCodes];
+
+        try {
+            // creating a non-accessable temporary QR Code object
+            const tempQRCode: QRCode = {
+                id: tempId,
+                name: (formValues  as ClassicDetailsFormValues).name || "Loading...",
+                userId: tempId,
+                url: "/gif/loading.gif",
+                scans: 0,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+                type: qrType as QRCodeTypes,
+                qrCodeId: tempId,
+                firstName: (formValues as CardDetailsFormValues).firstName,
+                lastName: (formValues as CardDetailsFormValues).lastName,
+                email: (formValues as CardDetailsFormValues).email || null,
+                phoneNumber: (formValues as CardDetailsFormValues).phoneNumber || null,
+                websiteUrl: formValues.websiteUrl || null,
+                address: (formValues as CardDetailsFormValues).address || null,
+            };
+
+            // optimistic update
+            setQrCodes([tempQRCode, ...qrCodes]);
+
+            router.push("/");
+
+            // API call to create QR Code
+            const res = await fetch(api.qrcodes.create.toString(), {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ 
+                    ...formValues, 
+                    qrType, 
+                    ...designOptions 
+                }),
+            });
+
+            const data: ResultType = await res.json()
+            if (data.success) {
+                // sync temporary QR Code object with the newly created
+                setQrCodes(prev => [
+                    {
+                        ...data.body,
+                        type: qrType as QRCodeTypes,
+                    },
+                    ...prev.filter(qr => qr.id !== tempId)
+                ]);
+                    setCreated(true);
+            } else {
+                setQrCodes(previousQrCodes);
+            }
+
+            setResult({ 
+                success: data.success, 
+                message: data.message,
+                body: data.body
+            });
+            setIsPending(false);
+        } catch (error: any) {
+            console.error("Error during QR code creation: ", error.message);
+            setQrCodes(previousQrCodes);
+            
+            setResult({ 
+                success: error.success, 
+                message: error.message,
+                body: error.body
+            });
+            setIsPending(false);
+        }
+    }
 
     return (
         <QrCreatorContext.Provider value={{
@@ -133,7 +218,8 @@ export function QrCreatorProvider({ children }: { children: React.ReactNode }) {
             reset,
             handlePrev, handleNext,
             isPending, setIsPending,
-            form
+            form,
+            handleCreate,
         }}>
             {children}
         </QrCreatorContext.Provider>

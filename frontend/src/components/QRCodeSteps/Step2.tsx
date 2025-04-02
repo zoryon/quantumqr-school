@@ -1,19 +1,12 @@
 "use client";
 
 import { useQrCodeCreator } from "@/hooks/use-qrcode-creator";
-import { useEffect } from "react";
 import { Button } from "../ui/button";
 import CreateVCardEditor from "../Editors/VCard/CreateVCardEditor";
 import QRCodeForm from "../Forms/Create/QRCodeFormRouter";
 
 const Step2 = () => {
-    const { handlePrev, qrType, created, reset, isPending } = useQrCodeCreator();
-
-    useEffect(() => {
-        if (created !== true) return;
-
-        setTimeout(reset, 1000);
-    }, [created]);
+    const { handlePrev, handleNext, qrType } = useQrCodeCreator();
 
     return (
         <div className="space-y-8">
@@ -30,20 +23,18 @@ const Step2 = () => {
             <div className="flex justify-between">
                 <Button
                     variant="ghost"
-                    onClick={() => handlePrev()}
                     className="text-gray-400 hover:text-gray-300"
+                    onClick={() => handlePrev()}
                 >
                     <i className="fas fa-arrow-left mr-2" />
                     Back
                 </Button>
                 <Button
-                    type="submit"
-                    form={qrType?.toLowerCase() + "-form"}
                     className="bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600"
-                    disabled={isPending}
+                    onClick={() => handleNext()}
                 >
-                    Create Code
-                    <i className="fas fa-bolt ml-2" />
+                    Next
+                    <i className="fas fa-arrow-right mr-2" />
                 </Button>
             </div>
         </div>

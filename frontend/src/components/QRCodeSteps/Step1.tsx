@@ -15,7 +15,7 @@ const QRCodesCard = () => {
     const { setQrType, handleNext, form } = useQrCodeCreator();
 
     return (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cons-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cons-4 gap-3">
             {QR_CODE_CARDS.map((type, index) => (
                 <div
                     key={index}

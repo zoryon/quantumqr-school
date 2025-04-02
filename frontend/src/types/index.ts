@@ -9,7 +9,8 @@ export type {
     QRCode,
     QRCodeTypes, 
     VCardQRCode, 
-    VCardResponse, 
+    VCardResponse,
+    DesignOptions, 
 } from "@/types/qrcode.types";
 export type { ResultType, } from "@/types/result.types";
 export type { User, PublicUser, } from "@/types/user.types";

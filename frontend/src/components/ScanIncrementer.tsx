@@ -8,7 +8,7 @@ export default function ScanIncrementer({ qrCodeId, redirectUrl }: { qrCodeId: n
         fetch(api.qrcodes.scan.toString(), { 
             method: "PUT",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ id: qrCodeId }),
+            body: JSON.stringify({ id: qrCodeId })
         })
             .then((res) => {
                 if (!res.ok) console.error("Failed to increment scan count");
@@ -16,7 +16,7 @@ export default function ScanIncrementer({ qrCodeId, redirectUrl }: { qrCodeId: n
                     window.location.href = redirectUrl;
                 } 
             })
-            .catch((err) => console.error("Scan increment error: ", err));
+            .catch((err) => console.error("Scan increment error:", err));
     }, [qrCodeId]);
 
     return null;

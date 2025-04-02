@@ -31,7 +31,7 @@ const EditClassicForm = ({
             <Form {...form}>
                 <form
                     onSubmit={form.handleSubmit(onSubmit)}
-                    className="space-y-6 bg-gray-800/40 backdrop-blur-sm rounded-2xl p-8 shadow-xl border border-gray-700/50"
+                    className="space-y-6 bg-gray-800/40 backdrop-blur-sm rounded-2xl py-6 px-4 shadow-xl border border-gray-700/50"
                 >
                     <FormField
                         control={form.control}

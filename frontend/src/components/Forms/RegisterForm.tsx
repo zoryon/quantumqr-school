@@ -29,7 +29,7 @@ const RegisterForm = () => {
     async function onSubmit(values: z.infer<typeof registerFormSchema>) {
         try {
             setIsPending(true);
-            const res = await fetch(api.auth.register.register.toString(), {
+            const res = await fetch(api.auth.register.toString(), {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
