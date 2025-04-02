@@ -104,7 +104,7 @@ class DB
     }
 
     // POST function
-    public function insert(string $sql, array $params = []): int | null
+    public function insert(string $sql, array $params = []): int | null | bool | string
     {
         try {
             $stmt = $this->conn->prepare($sql);
