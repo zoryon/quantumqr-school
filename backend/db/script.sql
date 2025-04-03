@@ -42,10 +42,11 @@ CREATE TABLE vcardqrcodes (
 );
 
 CREATE TABLE qrcodepermissions (
-    qrCodeId INT PRIMARY KEY,
-    userId INT PRIMARY KEY,
+    qrCodeId INT,
+    userId INT,
+    PRIMARY KEY (qrCodeId, userId), -- Composite primary key
     canEdit BOOLEAN DEFAULT FALSE,
-    FOREIGN KEY (qrCodeId) REFERENCES qrcodes(id) ON DELETE CASCADE
+    FOREIGN KEY (qrCodeId) REFERENCES qrcodes(id) ON DELETE CASCADE,
     FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
 );
 

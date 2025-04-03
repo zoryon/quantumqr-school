@@ -7,36 +7,49 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model admins {
-  id    Int   @id
-  users users @relation(fields: [id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "admins_ibfk_1")
+model classicqrcodes {
+  qrCodeId   Int     @id
+  websiteUrl String? @db.VarChar(255)
+  qrcodes    qrcodes @relation(fields: [qrCodeId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "classicqrcodes_ibfk_1")
+}
+
+model qrcodepermissions {
+  qrCodeId Int
+  userId   Int
+  canEdit  Boolean? @default(false)
+  qrcodes  qrcodes  @relation(fields: [qrCodeId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "qrcodepermissions_ibfk_1")
+  users    users    @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "qrcodepermissions_ibfk_2")
+
+  @@id([qrCodeId, userId])
+  @@index([userId], map: "userId")
 }
 
 model qrcodes {
-  id             Int             @id @default(autoincrement())
-  name           String          @db.VarChar(255)
-  userId         Int
-  url            String          @db.Text
-  scans          Int             @default(0)
-  createdAt      DateTime?       @default(now()) @db.DateTime(0)
-  updatedAt      DateTime?       @default(now()) @db.DateTime(0)
-  classicqrcodes classicqrcodes?
-  users          users           @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "qrcodes_ibfk_1")
-  vcardqrcodes   vcardqrcodes?
+  id                Int                 @id @default(autoincrement())
+  name              String              @db.VarChar(255)
+  userId            Int
+  url               String              @db.Text
+  scans             Int                 @default(0)
+  createdAt         DateTime?           @default(now()) @db.DateTime(0)
+  updatedAt         DateTime?           @default(now()) @db.DateTime(0)
+  classicqrcodes    classicqrcodes?
+  qrcodepermissions qrcodepermissions[]
+  users             users               @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "qrcodes_ibfk_1")
+  vcardqrcodes      vcardqrcodes?
 
   @@unique([userId, name], map: "uniqueUserIdName")
 }
 
 model users {
-  id               Int       @id @default(autoincrement())
-  email            String    @unique(map: "email") @db.VarChar(255)
-  username         String    @unique(map: "username") @db.VarChar(255)
-  password         String    @db.VarChar(255)
-  hasAllowedEmails Boolean?  @default(false)
-  isEmailConfirmed Boolean?  @default(false)
-  created_at       DateTime  @default(now()) @db.Timestamp(0)
-  admins           admins?
-  qrcodes          qrcodes[]
+  id                Int                 @id @default(autoincrement())
+  email             String              @unique(map: "email") @db.VarChar(255)
+  username          String              @unique(map: "username") @db.VarChar(255)
+  password          String              @db.VarChar(255)
+  hasAllowedEmails  Boolean?            @default(false)
+  isEmailConfirmed  Boolean?            @default(false)
+  createdAt         DateTime            @default(now()) @db.Timestamp(0)
+  qrcodepermissions qrcodepermissions[]
+  qrcodes           qrcodes[]
 }
 
 model vcardqrcodes {
@@ -48,10 +61,4 @@ model vcardqrcodes {
   websiteUrl  String? @db.VarChar(255)
   address     String? @db.VarChar(255)
   qrcodes     qrcodes @relation(fields: [qrCodeId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "vcardqrcodes_ibfk_1")
-}
-
-model classicqrcodes {
-  qrCodeId   Int     @id
-  websiteUrl String? @db.VarChar(255)
-  qrcodes    qrcodes @relation(fields: [qrCodeId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "classicqrcodes_ibfk_1")
 }

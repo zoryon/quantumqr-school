@@ -3,6 +3,7 @@
 require_once '../../vendor/autoload.php';
 
 use chillerlan\QRCode\QRCode;
+use chillerlan\QRCode\QROptions;
 
 $WEBSITE_URL = 'http://localhost:3000';
 $ROUTER_URL = "$WEBSITE_URL/r";
@@ -56,9 +57,23 @@ function createVCardQR(int $userId, array $input) {
             ]
         );
 
+        // Get QR Code's design
+        $fgColor = isset($input['fgColor']) ? $input['fgColor'] : '#000000';
+        $bgColor = isset($input['bgColor']) ? $input['bgColor'] : '#FFFFFF';
+        $logo = isset($input['logo']) ? $input['logo'] : null;
+        $logoSize = isset($input['logoSize']) ? $input['logoSize'] : 20;
+
         // Generate QR URL
         $dynamicUrl = "$WEBSITE_URL/q/vcards/$qrId";
-        $qrCodeUrl = (new QRCode())->render($dynamicUrl);
+
+        $qrCode = new QRCode();
+        $qrCode->setOptions(new QROptions([
+            'version' => 5,
+            'eccLevel' => QRCode::ECC_L,  // Error correction level
+            'fgColor' => hexToRgb($fgColor),  // Black color in rgb
+            'bgColor' => hexToRgb($bgColor)  // White color in rgb
+        ]));
+        $qrCodeUrl = ($qrCode)->render($dynamicUrl);
 
         // Update QR code with generated URL
         $db->update(
@@ -150,4 +165,20 @@ function getQRCodeDetails(int $qrId) {
     );
     
     return $qrCode[0] ?? null;
+}
+
+// Utils
+function hexToRgb($hex) {
+    $hex = ltrim($hex, '#');
+    $length = strlen($hex);
+    if ($length !== 3 && $length !== 6) {
+        throw new InvalidArgumentException("Invalid color code: $hex");
+    }
+    if ($length === 3) {
+        $hex = $hex[0].$hex[0].$hex[1].$hex[1].$hex[2].$hex[2];
+    }
+    $r = hexdec(substr($hex, 0, 2));
+    $g = hexdec(substr($hex, 2, 2));
+    $b = hexdec(substr($hex, 4, 2));
+    return [$r, $g, $b];
 }

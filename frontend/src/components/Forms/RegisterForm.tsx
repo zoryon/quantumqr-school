@@ -29,19 +29,19 @@ const RegisterForm = () => {
     async function onSubmit(values: z.infer<typeof registerFormSchema>) {
         try {
             setIsPending(true);
-            const res = await fetch(api.auth.register.toString(), {
+            console.log(api.auth.register.toString())
+            const res: ResultType = await fetch(api.auth.register.register.toString(), {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify(values),
-            });
+            }).then(res => res.json());
             
-            const data = await res.json();
             setResult({
-                success: data.success,
-                message: data.message,
-                body: data.body,
+                success: res.success,
+                message: res.message,
+                body: res.body,
             });
         } catch (error: any) {
             console.error("Error during registration: ", error.message);

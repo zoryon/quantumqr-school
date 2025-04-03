@@ -160,10 +160,10 @@ export function QrCreatorProvider({ children }: { children: React.ReactNode }) {
             // optimistic update
             setQrCodes([tempQRCode, ...qrCodes]);
 
+            console.log(designOptions);
             router.push("/");
-
             // API call to create QR Code
-            const res = await fetch(api.qrcodes.create.toString(), {
+            const res: ResultType = await fetch(api.qrcodes.create.toString(), {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -173,14 +173,13 @@ export function QrCreatorProvider({ children }: { children: React.ReactNode }) {
                     qrType, 
                     ...designOptions 
                 }),
-            });
+            }).then(res => res.json());
 
-            const data: ResultType = await res.json()
-            if (data.success) {
+            if (res.success) {
                 // sync temporary QR Code object with the newly created
                 setQrCodes(prev => [
                     {
-                        ...data.body,
+                        ...res.body,
                         type: qrType as QRCodeTypes,
                     },
                     ...prev.filter(qr => qr.id !== tempId)
@@ -191,9 +190,9 @@ export function QrCreatorProvider({ children }: { children: React.ReactNode }) {
             }
 
             setResult({ 
-                success: data.success, 
-                message: data.message,
-                body: data.body
+                success: res.success, 
+                message: res.message,
+                body: res.body
             });
             setIsPending(false);
         } catch (error: any) {
