@@ -36,7 +36,7 @@ type QrCreatorContextType = {
 // Initial values for design options
 const initialDesignOptions: DesignOptions = {
     fgColor: "#000000",
-    bgColor: "#FFFFFF",
+    bgColor: "#ffffff",
     logo: null,
     logoSize: 20,
 };
@@ -170,8 +170,8 @@ export function QrCreatorProvider({ children }: { children: React.ReactNode }) {
                 },
                 body: JSON.stringify({ 
                     ...formValues, 
+                    ...designOptions,
                     qrType, 
-                    ...designOptions 
                 }),
             }).then(res => res.json());
 

@@ -37,7 +37,6 @@ const DownloadButton = ({
     const handleDownload = async (format: "svg" | "png" | "jpg" | "jpeg") => {
         if (isDisabled) return;
 
-        let downloadUrl = url;
         const fileNameBase = (!firstName || !lastName)
             ? type
             : `${firstName}_${lastName}_vCard`;
@@ -45,20 +44,49 @@ const DownloadButton = ({
         try {
             setIsConverting(true);
 
-            if (format !== "svg") {
-                downloadUrl = await convertSvgToImage(
-                    url,
-                    format === "png" ? "png" : "jpeg",
-                    1024
-                );
-            }
+            if (format === "svg") {
+                const svgData = url;
+                const svgBlob = new Blob([svgData], { type: "image/svg+xml" });
+                const svgUrl = URL.createObjectURL(svgBlob);
 
-            const link = document.createElement("a");
-            link.href = downloadUrl;
-            link.download = `${fileNameBase}.${format}`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+                const link = document.createElement("a");
+                link.href = svgUrl;
+                link.download = `${fileNameBase}.${format}`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(svgUrl);
+            } else {
+                const canvas = document.createElement("canvas");
+                const ctx = canvas.getContext("2d");
+                const img = new Image();
+
+                img.onload = () => {
+                    canvas.width = img.naturalWidth;
+                    canvas.height = img.naturalHeight;
+                    ctx?.drawImage(img, 0, 0);
+
+                    let dataURL: string | undefined;
+                    if (format === "png") {
+                        dataURL = canvas.toDataURL("image/png");
+                    } else if (format === "jpg" || format === "jpeg") {
+                        dataURL = canvas.toDataURL("image/jpeg");
+                    }
+
+                    if (dataURL) {
+                        const link = document.createElement("a");
+                        link.href = dataURL;
+                        link.download = `${fileNameBase}.${format}`;
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                    }
+                    URL.revokeObjectURL(img.src);
+                };
+
+                const svgBlob = new Blob([url], { type: "image/svg+xml" });
+                img.src = URL.createObjectURL(svgBlob);
+            }
         } catch (error) {
             console.error("Download failed: ", error);
         } finally {

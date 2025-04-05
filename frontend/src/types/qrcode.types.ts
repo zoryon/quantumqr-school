@@ -82,6 +82,6 @@ export type QrTypeMapping = {
 export type DesignOptions = {
     fgColor: string;
     bgColor: string;
-    logo: File | null;
+    logo: string | null;
     logoSize: number;
 };

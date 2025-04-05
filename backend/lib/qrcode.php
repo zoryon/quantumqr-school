@@ -1,9 +1,14 @@
 <?php
 
-require_once '../../vendor/autoload.php';
+use Endroid\QrCode\Color\Color;
+use Endroid\QrCode\Encoding\Encoding;
+use Endroid\QrCode\ErrorCorrectionLevel;
+use Endroid\QrCode\Logo\Logo;
+use Endroid\QrCode\QrCode;
+use Endroid\QrCode\RoundBlockSizeMode;
+use Endroid\QrCode\Writer\SvgWriter;
 
-use chillerlan\QRCode\QRCode;
-use chillerlan\QRCode\QROptions;
+require_once '../../vendor/autoload.php';
 
 $WEBSITE_URL = 'http://localhost:3000';
 $ROUTER_URL = "$WEBSITE_URL/r";
@@ -57,23 +62,10 @@ function createVCardQR(int $userId, array $input) {
             ]
         );
 
-        // Get QR Code's design
-        $fgColor = isset($input['fgColor']) ? $input['fgColor'] : '#000000';
-        $bgColor = isset($input['bgColor']) ? $input['bgColor'] : '#FFFFFF';
-        $logo = isset($input['logo']) ? $input['logo'] : null;
-        $logoSize = isset($input['logoSize']) ? $input['logoSize'] : 20;
-
         // Generate QR URL
         $dynamicUrl = "$WEBSITE_URL/q/vcards/$qrId";
 
-        $qrCode = new QRCode();
-        $qrCode->setOptions(new QROptions([
-            'version' => 5,
-            'eccLevel' => QRCode::ECC_L,  // Error correction level
-            'fgColor' => hexToRgb($fgColor),  // Black color in rgb
-            'bgColor' => hexToRgb($bgColor)  // White color in rgb
-        ]));
-        $qrCodeUrl = ($qrCode)->render($dynamicUrl);
+        $qrCodeUrl = generateQRCodeSvg($dynamicUrl, $input);
 
         // Update QR code with generated URL
         $db->update(
@@ -135,7 +127,8 @@ function createClassicQR(int $userId, array $input) {
 
         // Generate QR URL
         $url = "$ROUTER_URL/classics/$qrId";
-        $qrCodeUrl = (new QRCode())->render($url);
+
+        $qrCodeUrl = generateQRCodeSvg($url, $input);
 
         // Update QR code
         $db->update(
@@ -168,7 +161,43 @@ function getQRCodeDetails(int $qrId) {
 }
 
 // Utils
-function hexToRgb($hex) {
+function generateQRCodeSvg($dynamicUrl, array $input) {
+    try {
+        $writer = new SvgWriter();
+
+        // Get QR Code's design
+        $fgColor = $input['fgColor'] ?? '#000000';
+        $bgColor = $input['bgColor'] ?? '#ffffff';
+        $base64Logo = $input['logo'] ?? null;
+        $logoSize = $input['logoSize'] ?? 20;
+    
+        $qrCode = new QRCode(
+            data: $dynamicUrl,
+            encoding: new Encoding('UTF-8'),
+            errorCorrectionLevel: ErrorCorrectionLevel::Low,
+            size: 300,
+            margin: 10,
+            roundBlockSizeMode: RoundBlockSizeMode::Margin,
+            foregroundColor: hexToRgb($fgColor),
+            backgroundColor: hexToRgb($bgColor)
+        );
+    
+        if($base64Logo === null || !$base64Logo) {
+            return ($writer->write($qrCode))->getString();
+        } else {
+            $logo = new Logo(
+                path: $base64Logo,
+                resizeToWidth: $logoSize,
+            );
+            
+            return ($writer->write($qrCode, $logo))->getString();
+        }
+    } catch (Exception $e) {
+        throw new Exception("Error generating QR code: " . $e->getMessage());
+    }
+}
+
+function hexToRgb($hex): Color {
     $hex = ltrim($hex, '#');
     $length = strlen($hex);
     if ($length !== 3 && $length !== 6) {
@@ -180,5 +209,5 @@ function hexToRgb($hex) {
     $r = hexdec(substr($hex, 0, 2));
     $g = hexdec(substr($hex, 2, 2));
     $b = hexdec(substr($hex, 4, 2));
-    return [$r, $g, $b];
+    return new Color($r, $g, $b);
 }

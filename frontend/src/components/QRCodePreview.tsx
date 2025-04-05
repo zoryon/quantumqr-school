@@ -24,13 +24,7 @@ const QRCodePreview = () => {
     // Handle logo file
     useEffect(() => {
         if (designOptions.logo) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                if (e.target?.result) {
-                    setLogoDataUrl(e.target.result as string);
-                }
-            };
-            reader.readAsDataURL(designOptions.logo);
+            setLogoDataUrl(designOptions.logo);
         } else {
             setLogoDataUrl(null);
         }

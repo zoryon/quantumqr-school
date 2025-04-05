@@ -18,13 +18,14 @@ const DesignOptionsForm = () => {
     []
   );
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files?.[0]) {
-      setDesignOptions(prev => ({
-        ...prev,
-        logo: e.target.files![0],
-        logoSize: prev.logoSize || 20
-      }));
+  const handleLogoChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setDesignOptions(prev => ({ ...prev, logo: reader.result as string })); // Store as base64 string
+      };
+      reader.readAsDataURL(file); // Read file as data URL (base64)
     } else {
       setDesignOptions(prev => ({ ...prev, logo: null }));
     }
@@ -80,9 +81,9 @@ const DesignOptionsForm = () => {
           <div>
             <Label className="mb-2 block">Company Logo</Label>
             <label className="flex flex-col items-center justify-center border-2 border-dashed border-slate-200 rounded-xl p-6 cursor-pointer hover:border-slate-300 transition-colors">
-              <input 
-                type="file" 
-                onChange={handleFileChange} 
+              <input
+                type="file"
+                onChange={handleLogoChange}
                 accept="image/*"
                 className="hidden"
               />

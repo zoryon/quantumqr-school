@@ -114,11 +114,12 @@ const QRCodeList = ({
             <div className="mt-4 flex items-center gap-3">
               <div className="relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-md border border-gray-700 bg-gray-800">
                 <Image
-                  src={qrCode.url}
+                  src={`data:image/svg+xml;base64,${Buffer.from(qrCode.url).toString("base64")}`}
                   alt={qrCode.name}
                   fill
                   className="object-cover transition-transform group-hover:scale-105"
                   loading="lazy"
+                  unoptimized={true}
                 />
               </div>
               <div className="flex-1 min-w-0">
