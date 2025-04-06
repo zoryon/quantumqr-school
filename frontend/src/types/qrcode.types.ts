@@ -83,5 +83,5 @@ export type DesignOptions = {
     fgColor: string;
     bgColor: string;
     logo: string | null;
-    logoSize: number;
+    logoScale: number;
 };

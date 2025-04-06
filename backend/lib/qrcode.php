@@ -1,23 +1,18 @@
 <?php
 
-use Endroid\QrCode\Color\Color;
-use Endroid\QrCode\Encoding\Encoding;
-use Endroid\QrCode\ErrorCorrectionLevel;
-use Endroid\QrCode\Logo\Logo;
-use Endroid\QrCode\QrCode;
-use Endroid\QrCode\RoundBlockSizeMode;
-use Endroid\QrCode\Writer\SvgWriter;
-
 require_once '../../vendor/autoload.php';
+
+use SimpleSoftwareIO\QrCode\Generator;
 
 $WEBSITE_URL = 'http://localhost:3000';
 $ROUTER_URL = "$WEBSITE_URL/r";
 $db = DB::getInstance();
 
-function createVCardQR(int $userId, array $input) {
+function createVCardQR(int $userId, array $input)
+{
     global $WEBSITE_URL;
     global $db;
-    
+
     // Validate required fields
     $required = ['name', 'firstName', 'lastName', 'phoneNumber', 'email', 'address', 'websiteUrl'];
     foreach ($required as $field) {
@@ -31,7 +26,7 @@ function createVCardQR(int $userId, array $input) {
         "SELECT id FROM qrcodes WHERE userId = ? AND name = ?",
         [$userId, $input['name']]
     );
-    
+
     if (!empty($existing)) {
         throw new Exception("A QR Code with the same name already exists");
     }
@@ -48,7 +43,7 @@ function createVCardQR(int $userId, array $input) {
 
         // Insert vCard details
         $db->insert(
-            "INSERT INTO vcardqrcodes 
+            "INSERT INTO vcardqrcodes
             (qrCodeId, firstName, lastName, phoneNumber, email, address, websiteUrl)
             VALUES (?, ?, ?, ?, ?, ?, ?)",
             [
@@ -62,15 +57,38 @@ function createVCardQR(int $userId, array $input) {
             ]
         );
 
+        // Instantiate the QrCode Generator class
+        $qrCode = new Generator();
+
         // Generate QR URL
         $dynamicUrl = "$WEBSITE_URL/q/vcards/$qrId";
 
-        $qrCodeUrl = generateQRCodeSvg($dynamicUrl, $input);
+        // Generate QR code with logo using simplesoftwareio/simple-qrcode
+        $fgColor = $input['fgColor'] ?? '#000000';
+        $bgColor = $input['bgColor'] ?? '#ffffff';
+        $base64Logo = $input['logo'] ?? null;
+        $logoScale = $input['logoScale'] ?? 0.2;
+
+        if ($base64Logo && !isValidBase64Image($base64Logo)) {
+            throw new Exception("Logo should be under 300KB and in PNG or JPG format.");
+        }
+
+        $qrCode->format('svg')
+            ->size(300)
+            ->errorCorrection('H')
+            ->color(hexToRgbComponents($fgColor)[0], hexToRgbComponents($fgColor)[1], hexToRgbComponents($fgColor)[2])
+            ->backgroundColor(hexToRgbComponents($bgColor)[0], hexToRgbComponents($bgColor)[1], hexToRgbComponents($bgColor)[2]);
+        $qrCodeSvg = $qrCode->generate($dynamicUrl);
+
+        // Se c'è un logo, lo inseriamo
+        if ($base64Logo) {
+            $qrCodeSvg = addLogoToSvgQrCode($qrCodeSvg, $base64Logo, $logoScale);
+        }
 
         // Update QR code with generated URL
         $db->update(
             "UPDATE qrcodes SET url = ? WHERE id = ?",
-            [$qrCodeUrl, $qrId]
+            [$qrCodeSvg, $qrId]
         );
 
         $db->executeQuery("COMMIT");
@@ -82,10 +100,11 @@ function createVCardQR(int $userId, array $input) {
     return getQRCodeDetails($qrId);
 }
 
-function createClassicQR(int $userId, array $input) {
+function createClassicQR(int $userId, array $input)
+{
     global $db;
     global $ROUTER_URL;
-    
+
     // Validate required fields
     $required = ['name', 'websiteUrl'];
     foreach ($required as $field) {
@@ -104,7 +123,7 @@ function createClassicQR(int $userId, array $input) {
         "SELECT id FROM qrcodes WHERE userId = ? AND name = ?",
         [$userId, $input['name']]
     );
-    
+
     if (!empty($existing)) {
         throw new Exception("A QR Code with the same name already exists");
     }
@@ -126,14 +145,37 @@ function createClassicQR(int $userId, array $input) {
         );
 
         // Generate QR URL
-        $url = "$ROUTER_URL/classics/$qrId";
+        $dynamicUrl = "$ROUTER_URL/classics/$qrId";
 
-        $qrCodeUrl = generateQRCodeSvg($url, $input);
+        // Instantiate the QrCode Generator class
+        $qrCode = new Generator();
+
+        // Generate QR code with logo using simplesoftwareio/simple-qrcode
+        $fgColor = $input['fgColor'] ?? '#000000';
+        $bgColor = $input['bgColor'] ?? '#ffffff';
+        $base64Logo = $input['logo'] ?? null;
+        $logoScale = $input['logoScale'] ?? 0.2; // Convert percentage to fraction
+
+        if ($base64Logo && !isValidBase64Image($base64Logo)) {
+            throw new Exception("Logo should be under 300KB and in PNG or JPG format.");
+        }
+
+        $qrCode->format('svg')
+            ->size(300)
+            ->errorCorrection('H')
+            ->color(hexToRgbComponents($fgColor)[0], hexToRgbComponents($fgColor)[1], hexToRgbComponents($fgColor)[2])
+            ->backgroundColor(hexToRgbComponents($bgColor)[0], hexToRgbComponents($bgColor)[1], hexToRgbComponents($bgColor)[2]);
+        $qrCodeSvg = $qrCode->generate($dynamicUrl);
+
+        // Se c'è un logo, lo inseriamo
+        if ($base64Logo) {
+            $qrCodeSvg = addLogoToSvgQrCode($qrCodeSvg, $base64Logo, $logoScale);
+        }
 
         // Update QR code
         $db->update(
             "UPDATE qrcodes SET url = ? WHERE id = ?",
-            [$qrCodeUrl, $qrId]
+            [$qrCodeSvg, $qrId]
         );
 
         $db->executeQuery("COMMIT");
@@ -145,69 +187,84 @@ function createClassicQR(int $userId, array $input) {
     return getQRCodeDetails($qrId);
 }
 
-function getQRCodeDetails(int $qrId) {
+function getQRCodeDetails(int $qrId)
+{
     global $db;
 
     $qrCode = $db->executeQuery(
-        "SELECT q.*, v.*, c.* 
+        "SELECT q.*, v.*, c.*
         FROM qrcodes AS q
         LEFT JOIN vcardqrcodes AS v ON q.id = v.qrCodeId
         LEFT JOIN classicqrcodes AS c ON q.id = c.qrCodeId
         WHERE q.id = ?",
         [$qrId]
     );
-    
+
     return $qrCode[0] ?? null;
 }
 
-// Utils
-function generateQRCodeSvg($dynamicUrl, array $input) {
-    try {
-        $writer = new SvgWriter();
-
-        // Get QR Code's design
-        $fgColor = $input['fgColor'] ?? '#000000';
-        $bgColor = $input['bgColor'] ?? '#ffffff';
-        $base64Logo = $input['logo'] ?? null;
-        $logoSize = $input['logoSize'] ?? 20;
-    
-        $qrCode = new QRCode(
-            data: $dynamicUrl,
-            encoding: new Encoding('UTF-8'),
-            errorCorrectionLevel: ErrorCorrectionLevel::Low,
-            size: 300,
-            margin: 10,
-            roundBlockSizeMode: RoundBlockSizeMode::Margin,
-            foregroundColor: hexToRgb($fgColor),
-            backgroundColor: hexToRgb($bgColor)
-        );
-    
-        if($base64Logo === null || !$base64Logo) {
-            return ($writer->write($qrCode))->getString();
-        } else {
-            $logo = new Logo(
-                path: $base64Logo,
-                resizeToWidth: $logoSize,
-            );
-            
-            return ($writer->write($qrCode, $logo))->getString();
-        }
-    } catch (Exception $e) {
-        throw new Exception("Error generating QR code: " . $e->getMessage());
-    }
-}
-
-function hexToRgb($hex): Color {
+// Helper functions
+function hexToRgbComponents($hex)
+{
     $hex = ltrim($hex, '#');
-    $length = strlen($hex);
-    if ($length !== 3 && $length !== 6) {
-        throw new InvalidArgumentException("Invalid color code: $hex");
-    }
-    if ($length === 3) {
-        $hex = $hex[0].$hex[0].$hex[1].$hex[1].$hex[2].$hex[2];
-    }
     $r = hexdec(substr($hex, 0, 2));
     $g = hexdec(substr($hex, 2, 2));
     $b = hexdec(substr($hex, 4, 2));
-    return new Color($r, $g, $b);
+    return [$r, $g, $b];
+}
+
+function addLogoToSvgQrCode(string $svgContent, string $base64Logo, float $logoScale = 0.2): string {
+    $doc = new DOMDocument();
+    $doc->loadXML($svgContent);
+    $doc->preserveWhiteSpace = false;
+
+    $svg = $doc->documentElement;
+
+    // Extract viewBox or fallback to default size
+    $viewBox = $svg->getAttribute('viewBox');
+    $size = 300;
+    if ($viewBox) {
+        $parts = explode(' ', $viewBox);
+        $size = isset($parts[2]) ? (int)$parts[2] : $size;
+    }
+
+    $logoSize = $size * $logoScale;
+    $x = ($size - $logoSize) / 2;
+    $y = ($size - $logoSize) / 2;
+
+    // Add white background behind logo for clarity (optional but recommended)
+    $background = $doc->createElementNS('http://www.w3.org/2000/svg', 'rect');
+    $background->setAttribute('x', $x);
+    $background->setAttribute('y', $y);
+    $background->setAttribute('width', $logoSize);
+    $background->setAttribute('height', $logoSize);
+    $background->setAttribute('fill', '#FFFFFF');
+    $background->setAttribute('rx', $logoSize * 0.1); // rounded corners
+
+    // Create image element
+    $image = $doc->createElementNS('http://www.w3.org/2000/svg', 'image');
+    $image->setAttribute('x', $x);
+    $image->setAttribute('y', $y);
+    $image->setAttribute('width', $logoSize);
+    $image->setAttribute('height', $logoSize);
+    $image->setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', $base64Logo);
+
+    // Insert background and image at the end so they appear on top
+    $svg->appendChild($background);
+    $svg->appendChild($image);
+
+    return $doc->saveXML($svg);
+}
+
+function isValidBase64Image(string $base64, int $maxSizeKb = 300): bool {
+    // Verifica se inizia correttamente
+    if (!preg_match('/^data:image\/(png|jpeg|jpg|gif);base64,/', $base64)) {
+        return false;
+    }
+
+    // Calcola la dimensione in byte (base64 è circa 33% più grande)
+    $data = explode(',', $base64)[1] ?? '';
+    $sizeInBytes = (int)(strlen($data) * 0.75);
+
+    return $sizeInBytes <= ($maxSizeKb * 1024);
 }

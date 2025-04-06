@@ -42,11 +42,11 @@ const QRCodePreview = () => {
                     imageSettings={
                         logoDataUrl
                             ? {
-                                  src: logoDataUrl,
-                                  height: (designOptions.logoSize / 100) * 512,
-                                  width: (designOptions.logoSize / 100) * 512,
-                                  excavate: true,
-                              }
+                                src: logoDataUrl,
+                                height: (designOptions.logoScale / 100) * 512,
+                                width: (designOptions.logoScale / 100) * 512,
+                                excavate: true,
+                            }
                             : undefined
                     }
                     style={{ width: "100%", height: "auto" }}

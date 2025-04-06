@@ -10,6 +10,7 @@ import { DesignOptions } from "@/types";
 const DesignOptionsForm = () => {
   const { designOptions, setDesignOptions } = useQrCodeCreator();
   const [logoPreview] = useState<string | null>(null);
+  const [logoError, setLogoError] = useState<string | null>(null);
 
   const debouncedSetDesignOptions = useCallback(
     debounce((update: Partial<DesignOptions>) => {
@@ -20,14 +21,31 @@ const DesignOptionsForm = () => {
 
   const handleLogoChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
+
     if (file) {
+      if (!file.type.startsWith("image/")) {
+        setLogoError("Invalid file type. Please upload an image.");
+        setDesignOptions(prev => ({ ...prev, logo: null }));
+        return;
+      }
+
+      const maxSizeKB = 300;
+      if (file.size > maxSizeKB * 1024) {
+        setLogoError("Image too large. Max size is 300KB.");
+        setDesignOptions(prev => ({ ...prev, logo: null }));
+        return;
+      }
+
+      setLogoError(null); // clear previous errors
+
       const reader = new FileReader();
       reader.onloadend = () => {
-        setDesignOptions(prev => ({ ...prev, logo: reader.result as string })); // Store as base64 string
+        setDesignOptions(prev => ({ ...prev, logo: reader.result as string }));
       };
-      reader.readAsDataURL(file); // Read file as data URL (base64)
+      reader.readAsDataURL(file);
     } else {
       setDesignOptions(prev => ({ ...prev, logo: null }));
+      setLogoError(null);
     }
   };
 
@@ -35,8 +53,8 @@ const DesignOptionsForm = () => {
     debouncedSetDesignOptions({ [`${type}Color`]: e.target.value });
   };
 
-  const handleLogoSizeChange = ([value]: number[]) => {
-    setDesignOptions(prev => ({ ...prev, logoSize: value }));
+  const handleLogoScaleChange = ([value]: number[]) => {
+    setDesignOptions(prev => ({ ...prev, logoScale: value }));
   };
 
   useEffect(() => {
@@ -80,7 +98,7 @@ const DesignOptionsForm = () => {
         <div className="space-y-4">
           <div>
             <Label className="mb-2 block">Company Logo</Label>
-            <label className="flex flex-col items-center justify-center border-2 border-dashed border-slate-200 rounded-xl p-6 cursor-pointer hover:border-slate-300 transition-colors">
+            <Label className="flex flex-col items-center justify-center border-2 border-dashed border-slate-200 rounded-xl p-6 cursor-pointer hover:border-slate-300 transition-colors">
               <input
                 type="file"
                 onChange={handleLogoChange}
@@ -88,21 +106,24 @@ const DesignOptionsForm = () => {
                 className="hidden"
               />
               <span className="text-slate-500">Drag & drop or click to upload</span>
-            </label>
+            </Label>
+            {logoError && (
+              <p className="text-sm text-red-500 mt-2 text-center">{logoError}</p>
+            )}
           </div>
           {designOptions.logo && (
             <div className="space-y-4">
               <Label className="text-slate-600 block">Logo Scale</Label>
               <Slider
-                value={[designOptions.logoSize || 20]}
-                onValueChange={handleLogoSizeChange}
-                min={10}
+                value={[designOptions.logoScale || 20]}
+                onValueChange={handleLogoScaleChange}
+                min={20}
                 max={40}
                 step={5}
                 className="[&_.slider-track]:bg-slate-100 [&_.slider-range]:bg-slate-900"
               />
               <span className="text-sm text-slate-500 block text-center">
-                {designOptions.logoSize}% of QR code
+                {designOptions.logoScale}% of QR code
               </span>
             </div>
           )}

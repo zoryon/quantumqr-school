@@ -38,7 +38,7 @@ const initialDesignOptions: DesignOptions = {
     fgColor: "#000000",
     bgColor: "#ffffff",
     logo: null,
-    logoSize: 20,
+    logoScale: 20,
 };
 
 // Create a context to share QR code creation state across components
@@ -133,12 +133,12 @@ export function QrCreatorProvider({ children }: { children: React.ReactNode }) {
         // Get form values
         const formValues = form.getValues();
 
-        // temporary ID for optimistic update
+        // Temporary ID for optimistic update
         const tempId = -Date.now();
         const previousQrCodes = [...qrCodes];
 
         try {
-            // creating a non-accessable temporary QR Code object
+            // Creating a non-accessable temporary QR Code object
             const tempQRCode: QRCode = {
                 id: tempId,
                 name: (formValues  as ClassicDetailsFormValues).name || "Loading...",
@@ -157,11 +157,13 @@ export function QrCreatorProvider({ children }: { children: React.ReactNode }) {
                 address: (formValues as CardDetailsFormValues).address || null,
             };
 
-            // optimistic update
+            // Optimistic update
             setQrCodes([tempQRCode, ...qrCodes]);
-
-            console.log(designOptions);
             router.push("/");
+
+            // Logo scale is in percentage, so we need to convert it to a decimal value
+            designOptions.logoScale = designOptions.logoScale ? designOptions.logoScale / 100 : 0.2;
+
             // API call to create QR Code
             const res: ResultType = await fetch(api.qrcodes.create.toString(), {
                 method: "POST",
@@ -176,7 +178,7 @@ export function QrCreatorProvider({ children }: { children: React.ReactNode }) {
             }).then(res => res.json());
 
             if (res.success) {
-                // sync temporary QR Code object with the newly created
+                // Sync temporary QR Code object with the newly created
                 setQrCodes(prev => [
                     {
                         ...res.body,
