@@ -9,7 +9,43 @@ CREATE TABLE users (
     password VARCHAR(255) NOT NULL,
     hasAllowedEmails BOOLEAN DEFAULT FALSE,
     isEmailConfirmed BOOLEAN DEFAULT FALSE,
-    createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+);
+
+CREATE TABLE cardtypes (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE tiers (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(255) NOT NULL,  -- ('Free', 'Basic', 'Pro', 'Enterprise')
+    price DECIMAL(10, 2) NOT NULL,
+    description TEXT,
+    maxQRCodes INT DEFAULT 10,
+    createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE paymentmethods (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    cardTypeId INT NOT NULL,
+    iban VARCHAR(255) UNIQUE NOT NULL,
+    FOREIGN KEY (cardTypeId) REFERENCES cardtypes(id)
+);
+
+CREATE TABLE subscription (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    userId INT NOT NULL,
+    tierId INT NOT NULL,
+    paymentMethodId INT NOT NULL,
+    createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    canceledAt TIMESTAMP NULL,
+    FOREIGN KEY (userId) REFERENCES users(id),
+    FOREIGN KEY (tierId) REFERENCES tiers(id),
+    FOREIGN KEY (paymentMethodId) REFERENCES paymentmethods(id)
 );
 
 CREATE TABLE qrcodes (
@@ -19,7 +55,7 @@ CREATE TABLE qrcodes (
     url TEXT NOT NULL,
     scans INT NOT NULL DEFAULT 0,
     createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE,
     CONSTRAINT uniqueUserIdName UNIQUE (userId, name)
 );
@@ -41,14 +77,19 @@ CREATE TABLE vcardqrcodes (
     FOREIGN KEY (qrCodeId) REFERENCES qrcodes(id) ON DELETE CASCADE
 );
 
-CREATE TABLE qrcodepermissions (
-    qrCodeId INT,
-    userId INT,
-    PRIMARY KEY (qrCodeId, userId), -- Composite primary key
-    canEdit BOOLEAN DEFAULT FALSE,
-    FOREIGN KEY (qrCodeId) REFERENCES qrcodes(id) ON DELETE CASCADE,
-    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
-);
+-- TODO: automatically add tiers and cardtypes here
+-- tiers
+INSERT INTO tiers (name, price, description, maxQRCodes) VALUES ("Free", 0, "Free plan which is automatically set for any person who registers.", 10);
+INSERT INTO tiers (name, price, description, maxQRCodes) VALUES ("Basic", 4.99, "Basic plan for people who don't need many qr codes, but still get value from them.", 30);
+INSERT INTO tiers (name, price, description, maxQRCodes) VALUES ("Pro", 9.99, "Pro plan for people who get quite a lot of value from them.", 50);
+INSERT INTO tiers (name, price, description, maxQRCodes) VALUES ("Enterprise", 24.99, "Enterprise plan for organizations which use qr codes often.", 200);
+
+-- cardtypes
+INSERT INTO cardtypes (name) VALUES ("Visa");
+INSERT INTO cardtypes (name) VALUES ("Master Card");
+
+-- paymentmethods
+INSERT INTO paymentmethods ();
 
 -- FUNCTIONS AND PROCEDURES
 -- Clean up unconfirmed users procedure
@@ -57,7 +98,7 @@ CREATE PROCEDURE DeleteUnconfirmedUsers()
 BEGIN
     DELETE FROM users
     WHERE isEmailConfirmed = FALSE
-    AND created_at < NOW() - INTERVAL 10 MINUTE;
+    AND createdAt < NOW() - INTERVAL 10 MINUTE;
 END //
 DELIMITER ;
 
