@@ -85,12 +85,13 @@ const QRCodeList = ({
       {qrCodes.map((qrCode) => {
         const isTemp = qrCode.id < 0;
 
-        const createdDate = new Date(qrCode.createdAt!).toLocaleDateString("it-IT", {
+        const createdDate = qrCode.createdAt ? new Date(qrCode.createdAt).toLocaleDateString("it-IT", {
           dateStyle: "medium",
-        });
-        const updatedDate = new Date(qrCode.updatedAt!).toLocaleDateString("it-IT", {
+        }) : "Unknown";
+        
+        const updatedDate = qrCode.updatedAt ? new Date(qrCode.updatedAt).toLocaleDateString("it-IT", {
           dateStyle: "medium",
-        });
+        }) : "Unknown";
 
         return (
           <article

@@ -39,7 +39,7 @@ try {
     // Build SQL query
     $selectFields = [
         'q.id', 'q.name', 'q.userId', 'q.url', 
-        'q.createdAt', 'q.scans',
+        'q.createdAt', 'q.updatedAt', 'q.scans',
         'v.firstName', 'v.lastName', 'v.phoneNumber', 
         'v.email', 'v.address', 'v.websiteUrl',
         'c.websiteUrl AS classicWebsite'
@@ -110,6 +110,7 @@ try {
             'userId' => (int)$qr['userId'],
             'url' => $qr['url'],
             'createdAt' => $qr['createdAt'],
+            'updatedAt' => $qr['updatedAt'],
             'scans' => (int)$qr['scans'],
             'type' => $type,
             ...$relationData
