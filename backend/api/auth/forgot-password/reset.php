@@ -89,12 +89,12 @@ try {
 
     // Update the user's password in the database (ensure the email is confirmed)
     $updatedRowsNum = $db->update(
-        "UPDATE users 
-        SET password = ?
-        WHERE id = ?
-        AND isEmailConfirmed = 1
-        ", 
-        [password_hash($input['password'], PASSWORD_BCRYPT), $userId]
+        "users", 
+        ["password" => password_hash($input['password'], PASSWORD_BCRYPT)],
+        [
+            "id" => $userId,
+            "isEmailConfirmed" => 1
+        ]
     );
 
     if ($updatedRowsNum === 0) {
@@ -115,7 +115,6 @@ try {
             'body' => $updatedRowsNum
         ])
         ->send();
-
 } catch (Exception $e) {
     error_log($e->getMessage());
     $db->setStatus(500)

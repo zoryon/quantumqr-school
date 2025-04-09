@@ -55,10 +55,10 @@ try {
     }
 
     // Verify QR code ownership
-    $qrCode = $db->executeQuery(
-        "SELECT * FROM qrcodes WHERE id = ? AND userId = ?",
-        [$qrId, $userId]
-    );
+    $qrCode = $db->selectOne("qrcodes", [
+        "id" => $qrId, 
+        "userId" => $userId
+    ]);
 
     if (empty($qrCode)) {
         $db->setStatus(404)
@@ -71,10 +71,10 @@ try {
     }
 
     // Perform deletion
-    $affectedRows = $db->delete(
-        "DELETE FROM qrcodes WHERE id = ? AND userId = ?",
-        [$qrId, $userId]
-    );
+    $affectedRows = $db->delete("qrcodes", [
+        "id" => $qrId, 
+        "userId" => $userId
+    ]);
 
     if ($affectedRows === 0) {
         $db->setStatus(404)
@@ -94,7 +94,6 @@ try {
             'body' => $qrCode[0]
         ])
         ->send();
-
 } catch (Exception $e) {
     error_log('Delete error: ' . $e->getMessage());
     $db->setStatus(500)

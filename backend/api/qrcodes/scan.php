@@ -42,23 +42,36 @@ try {
             ->send();
     }
 
-    // Increment scan count
-    $db->executeQuery(
-        "UPDATE qrcodes SET scans = scans + 1 WHERE id = ?",
-        [$qrId]
-    );
+    // --- Increment Scan Count Atomically ---
+    // Use execute for raw SQL UPDATE with atomic increment
+    $updateSql = "UPDATE qrcodes SET scans = scans + 1 WHERE id = ?";
+    $stmt = $db->execute($updateSql, [$qrId]);
 
-    // Get updated scan count
-    $result = $db->executeQuery(
-        "SELECT scans FROM qrcodes WHERE id = ?",
-        [$qrId]
-    );
-
-    if (empty($result)) {
-        $db->setStatus(404)
+    // Check if the execute call succeeded and if any row was actually updated
+    if (!$stmt || $stmt->rowCount() === 0) {
+        // If rowCount is 0, it means no record with that ID was found/updated
+        // We should check if the record exists first, or infer from rowCount.
+        // Inferring from rowCount is simpler here.
+        $db->setStatus(404) // Not Found
             ->setResponse([
                 'success' => false,
-                'message' => 'QR code not found',
+                'message' => 'QR code not found or update failed.',
+                'body' => null
+            ])
+            ->send();
+    }
+
+    // --- Get Updated Scan Count ---
+    // Fetch the updated record to get the new scan count
+    // selectOne returns the row array or false
+    $updatedQrData = $db->selectOne("qrcodes", ["id" => $qrId]);
+
+    if (!$updatedQrData) {
+        // This shouldn't happen if the update succeeded, but check for safety
+        $db->setStatus(404) // Or 500, as this indicates inconsistency
+            ->setResponse([
+                'success' => false,
+                'message' => 'QR code not found after update.',
                 'body' => null
             ])
             ->send();
@@ -69,7 +82,7 @@ try {
             'success' => true,
             'message' => 'Scan count updated',
             'body' => [
-                'scans' => (int)$result[0]['scans']
+                'scans' => (int)$updatedQrData['scans']
             ]
         ])
         ->send();

@@ -82,10 +82,11 @@ try {
     }
 
     // Check for duplicate name (excluding current QR)
-    $existing = $db->executeQuery(
+    $stmt = $db->execute(
         "SELECT id FROM qrcodes WHERE userId = ? AND name = ? AND id != ?",
         [$userId, $data['name'], $qrId]
     );
+    $existing = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     if (!empty($existing)) {
         $db->setStatus(400)
@@ -97,54 +98,68 @@ try {
             ->send();
     }
 
-    // Start transaction
-    $db->executeQuery("START TRANSACTION");
+    /// --- Database Update (Transaction) ---
+    $db->execute("START TRANSACTION");
 
     try {
-        // Update main QR code
-        $db->update(
-            "UPDATE qrcodes SET name = ?, updatedAt = NOW() WHERE id = ? AND userId = ?",
-            [$data['name'], $qrId, $userId]
-        );
+        // 1. Update main qrcodes table (only name and updatedAt for now)
+        $updateBaseSql = "UPDATE qrcodes SET name = ?, updatedAt = NOW() WHERE id = ? AND userId = ?";
+        $updateBaseStmt = $db->execute($updateBaseSql, [trim($input['name']), $qrId, $userId]);
 
-        // Build type-specific update
+        // Check if the base update failed unexpectedly (e.g., DB error)
+        if (!$updateBaseStmt) {
+            throw new Exception("Failed to execute base QR code update for ID: $qrId");
+        }
+
+        // 2. Update type-specific table
+        $specificTableName = $typeConfig['table'];
+        $specificFields = $typeConfig['fields'];
         $setParts = [];
         $params = [];
-        foreach ($typeConfig['fields'] as $field) {
-            if (isset($data[$field])) {
-                $setParts[] = "$field = ?";
-                $params[] = $data[$field];
+        
+        foreach ($specificFields as $field) {
+            // Check if the field was provided in the input data
+            if (array_key_exists($field, $input)) {
+                // Use backticks for safety
+                $setParts[] = "`$field` = ?";
+                // Trim string inputs, handle other types if necessary
+                $params[] = is_string($input[$field]) ? trim($input[$field]) : $input[$field];
             }
         }
-        $params[] = $qrId; // For WHERE clause
 
-        $db->update(
-            "UPDATE {$typeConfig['table']} SET " . implode(', ', $setParts) . " WHERE qrCodeId = ?",
-            $params
-        );
+        // Only run the update if there are specific fields to update
+        if (!empty($setParts)) {
+            $params[] = $qrId; // Add qrId for the WHERE clause
+            $updateSpecificSql = "UPDATE `$specificTableName` SET " . implode(', ', $setParts) . " WHERE qrCodeId = ?";
+            $updateSpecificStmt = $db->execute($updateSpecificSql, $params);
 
-        $db->executeQuery("COMMIT");
+            if (!$updateSpecificStmt) {
+                 throw new Exception("Failed to execute specific QR code update for type '{$type}', ID: $qrId");
+            }
+        } 
+        
+        $db->execute("COMMIT");
     } catch (Exception $e) {
-        $db->executeQuery("ROLLBACK");
+        $db->execute("ROLLBACK");
         throw $e;
     }
 
     // Get updated QR code
-    $updatedQr = $db->executeQuery(
+    $stmt = $db->execute(
         "SELECT q.*, t.* FROM qrcodes q
          LEFT JOIN {$typeConfig['table']} t ON q.id = t.qrCodeId
          WHERE q.id = ?",
         [$qrId]
     );
+    $updatedQr = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     $db->setStatus(200)
         ->setResponse([
             'success' => true,
             'message' => 'QR Code updated successfully',
-            'body' => $updatedQr[0] ?? null
+            'body' => $updatedQr ?? null
         ])
         ->send();
-
 } catch (Exception $e) {
     error_log('Update error: ' . $e->getMessage());
     $db->setStatus(500)
@@ -156,7 +171,7 @@ try {
         ->send();
 }
 
-// Helper validation function (would be in validation.php)
+// Helper validation function (would be in /lib/validation.php)
 function validateData(array $data, array $rules): array {
     $errors = [];
     // Implement validation logic here

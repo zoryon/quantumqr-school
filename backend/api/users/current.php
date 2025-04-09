@@ -34,14 +34,12 @@ try {
     }
 
     // Find confirmed user
-    $users = $db->executeQuery(
-        "SELECT email, username FROM users 
-        WHERE id = ?
-        AND isEmailConfirmed = 1
-        ", [$userId]
-    );
+    $user = $db->selectOne("users", [
+        "id" => $userId, 
+        "isEmailConfirmed" => 1
+    ]);
 
-    if (empty($users)) {
+    if (empty($user)) {
         $db->setStatus(404)
             ->setResponse([
                 'success' => false,
@@ -50,7 +48,6 @@ try {
             ])
             ->send();
     }
-    $user = $users[0];
 
     // Successful response
     $db->setStatus(200)

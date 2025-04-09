@@ -6,12 +6,11 @@ use SimpleSoftwareIO\QrCode\Generator;
 
 $WEBSITE_URL = 'http://localhost:3000';
 $ROUTER_URL = "$WEBSITE_URL/r";
-$db = DB::getInstance();
 
 function createVCardQR(int $userId, array $input)
 {
     global $WEBSITE_URL;
-    global $db;
+    $db = DB::getInstance();
 
     // Validate required fields
     $required = ['name', 'firstName', 'lastName', 'phoneNumber', 'email', 'address', 'websiteUrl'];
@@ -22,45 +21,47 @@ function createVCardQR(int $userId, array $input)
     }
 
     // Check for existing QR code name
-    $existing = $db->executeQuery(
-        "SELECT id FROM qrcodes WHERE userId = ? AND name = ?",
-        [$userId, $input['name']]
-    );
+    $existing = $db->select("qrcodes", [
+        "userId" => $userId, 
+        "name" => $input['name']
+    ]);
 
     if (!empty($existing)) {
         throw new Exception("A QR Code with the same name already exists");
     }
 
     // Start transaction
-    $db->executeQuery("START TRANSACTION");
+    $db->execute("START TRANSACTION");
 
     try {
-        // Insert main QR code
-        $qrId = $db->insert(
-            "INSERT INTO qrcodes (name, userId, url) VALUES (?, ?, '')",
-            [$input['name'], $userId]
-        );
+        // 1. Insert base QR code record (without URL initially)
+        $qrData = [
+            'name' => trim($input['name']),
+            'userId' => $userId,
+            'url' => '' // Placeholder, will be updated later
+        ];
+        $qrId = $db->insert("qrcodes", $qrData); 
 
-        // Insert vCard details
-        $db->insert(
-            "INSERT INTO vcardqrcodes
-            (qrCodeId, firstName, lastName, phoneNumber, email, address, websiteUrl)
-            VALUES (?, ?, ?, ?, ?, ?, ?)",
-            [
-                $qrId,
-                $input['firstName'],
-                $input['lastName'],
-                $input['phoneNumber'],
-                $input['email'],
-                $input['address'],
-                $input['websiteUrl']
-            ]
-        );
+        if (!$qrId) {
+            throw new Exception("Failed to insert base QR code record.");
+        }
+
+        // 2. Insert vCard specific details
+        $vCardData = [
+            'qrCodeId' => $qrId,
+            'firstName' => trim($input['firstName']),
+            'lastName' => trim($input['lastName']),
+            'phoneNumber' => trim($input['phoneNumber']),
+            'email' => trim($input['email']),
+            'address' => trim($input['address']),
+            'websiteUrl' => trim($input['websiteUrl'])
+        ];
+        $db->insert("vcardqrcodes", $vCardData);
 
         // Instantiate the QrCode Generator class
         $qrCode = new Generator();
 
-        // Generate QR URL
+        // --- Generate QR Code SVG ---
         $dynamicUrl = "$WEBSITE_URL/q/vcards/$qrId";
 
         // Generate QR code with logo using simplesoftwareio/simple-qrcode
@@ -80,20 +81,21 @@ function createVCardQR(int $userId, array $input)
             ->backgroundColor(hexToRgbComponents($bgColor)[0], hexToRgbComponents($bgColor)[1], hexToRgbComponents($bgColor)[2]);
         $qrCodeSvg = $qrCode->generate($dynamicUrl);
 
-        // Se c'è un logo, lo inseriamo
         if ($base64Logo) {
             $qrCodeSvg = addLogoToSvgQrCode($qrCodeSvg, $base64Logo, $logoScale);
         }
 
-        // Update QR code with generated URL
-        $db->update(
-            "UPDATE qrcodes SET url = ? WHERE id = ?",
-            [$qrCodeSvg, $qrId]
-        );
+        // 3. Update the base QR code record with the generated SVG URL/content
+        $updateResult = $db->update("qrcodes", ['url' => $qrCodeSvg], ['id' => $qrId]);
 
-        $db->executeQuery("COMMIT");
+        if ($updateResult === false) { // update returns row count or false
+            throw new Exception("Failed to update QR code record with generated SVG for ID: $qrId");
+        }
+
+        // --- Commit Transaction ---
+        $db->execute("COMMIT");
     } catch (Exception $e) {
-        $db->executeQuery("ROLLBACK");
+        $db->execute("ROLLBACK");
         throw $e;
     }
 
@@ -102,8 +104,8 @@ function createVCardQR(int $userId, array $input)
 
 function createClassicQR(int $userId, array $input)
 {
-    global $db;
     global $ROUTER_URL;
+    $db = DB::getInstance();
 
     // Validate required fields
     $required = ['name', 'websiteUrl'];
@@ -118,32 +120,40 @@ function createClassicQR(int $userId, array $input)
         throw new Exception("Website URL is required");
     }
 
-    // Check for existing QR code name
-    $existing = $db->executeQuery(
-        "SELECT id FROM qrcodes WHERE userId = ? AND name = ?",
-        [$userId, $input['name']]
-    );
+    // --- Check for existing QR code name ---
+    $existing = $db->select("qrcodes", [
+        "userId" => $userId,
+        "name" => $input['name']
+    ]);
 
     if (!empty($existing)) {
         throw new Exception("A QR Code with the same name already exists");
     }
 
-    // Start transaction
-    $db->executeQuery("START TRANSACTION");
+    // --- Database Operations (Transaction) ---
+    $db->execute("START TRANSACTION");
 
     try {
-        // Insert main QR code
-        $qrId = $db->insert(
-            "INSERT INTO qrcodes (name, userId, url) VALUES (?, ?, '')",
-            [$input['name'], $userId]
-        );
+        // 1. Insert base QR code record
+        $qrData = [
+            'name' => trim($input['name']),
+            'userId' => $userId,
+            'url' => '' // Placeholder
+        ];
+        $qrId = $db->insert("qrcodes", $qrData);
 
-        // Insert classic details
-        $db->insert(
-            "INSERT INTO classicqrcodes (qrCodeId, websiteUrl) VALUES (?, ?)",
-            [$qrId, $input['websiteUrl']]
-        );
+        if (!$qrId) {
+            throw new Exception("Failed to insert base QR code record.");
+        }
 
+        // 2. Insert classic QR specific details
+        $classicData = [
+            'qrCodeId' => $qrId,
+            'websiteUrl' => trim($input['websiteUrl'])
+        ];
+        $db->insert("classicqrcodes", $classicData);
+
+        // --- Generate QR Code SVG ---
         // Generate QR URL
         $dynamicUrl = "$ROUTER_URL/classics/$qrId";
 
@@ -167,20 +177,20 @@ function createClassicQR(int $userId, array $input)
             ->backgroundColor(hexToRgbComponents($bgColor)[0], hexToRgbComponents($bgColor)[1], hexToRgbComponents($bgColor)[2]);
         $qrCodeSvg = $qrCode->generate($dynamicUrl);
 
-        // Se c'è un logo, lo inseriamo
         if ($base64Logo) {
             $qrCodeSvg = addLogoToSvgQrCode($qrCodeSvg, $base64Logo, $logoScale);
         }
 
-        // Update QR code
-        $db->update(
-            "UPDATE qrcodes SET url = ? WHERE id = ?",
-            [$qrCodeSvg, $qrId]
-        );
+        // 3. Update the base QR code record with the generated SVG
+        $updateResult = $db->update("qrcodes", ['url' => $qrCodeSvg], ['id' => $qrId]);
 
-        $db->executeQuery("COMMIT");
+        if ($updateResult === false) {
+            throw new Exception("Failed to update QR code record with generated SVG for ID: $qrId");
+        }
+
+        $db->execute("COMMIT");
     } catch (Exception $e) {
-        $db->executeQuery("ROLLBACK");
+        $db->execute("ROLLBACK");
         throw $e;
     }
 
@@ -189,21 +199,33 @@ function createClassicQR(int $userId, array $input)
 
 function getQRCodeDetails(int $qrId)
 {
-    global $db;
+    $db = DB::getInstance();
 
-    $qrCode = $db->executeQuery(
-        "SELECT q.*, v.*, c.*
+    $sql = "SELECT q.*, v.*, c.*
         FROM qrcodes AS q
         LEFT JOIN vcardqrcodes AS v ON q.id = v.qrCodeId
         LEFT JOIN classicqrcodes AS c ON q.id = c.qrCodeId
-        WHERE q.id = ?",
-        [$qrId]
-    );
+        WHERE q.id = ?";
 
-    return $qrCode[0] ?? null;
+    try {
+        $stmt = $db->execute($sql, [$qrId]);
+
+        if ($stmt) {
+            // Fetch the single result row
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $result ?: null; 
+        } else {
+            return null;
+        }
+    } catch (Exception $e) {
+        return null;
+    }
 }
 
-// Helper functions
+// ================
+// Helper Functions 
+// ================
+
 function hexToRgbComponents($hex)
 {
     $hex = ltrim($hex, '#');

@@ -2,11 +2,11 @@
 class DB
 {
     // attributes
-    private $conn;
+    private static $instance = null;
+    private $pdo;
     private $status = 200;
     private $headers = [];
     private $response = [];
-    private static $instance = null;
 
     private $DB_CONFIG = [
         "host" => "localhost",
@@ -32,6 +32,23 @@ class DB
         return self::$instance;
     }
 
+    // connect to the database
+    private function connect(): void
+    {
+        $dsn = "mysql:host={$this->DB_CONFIG['host']};dbname={$this->DB_CONFIG['database']};";
+
+        try {
+            $this->pdo = new PDO(
+                $dsn,
+                $this->DB_CONFIG["user"],
+                $this->DB_CONFIG["password"],
+            );
+            $this->pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            $this->handleError("Database connection failed: " . $e->getMessage(), (int)$e->getCode());
+        }
+    }
+
     public function addCorsHeaders()
     {
         header("Access-Control-Allow-Origin: http://localhost:3000");
@@ -39,24 +56,6 @@ class DB
         header("Access-Control-Allow-Headers: Content-Type, Authorization");
         header("Access-Control-Allow-Credentials: true");
         return $this;
-    }
-
-    // connect to the database
-    private function connect(): void
-    {
-        $dsn = "mysql:host={$this->DB_CONFIG['host']};dbname={$this->DB_CONFIG['database']};";
-
-        try {
-            $this->conn = new PDO(
-                $dsn,
-                $this->DB_CONFIG["user"],
-                $this->DB_CONFIG["password"],
-            );
-            $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-            $this->conn->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-        } catch (PDOException $e) {
-            $this->handleError("Database connection failed: " . $e->getMessage(), 500);
-        }
     }
 
     // by default, set Content-Type header to application/json
@@ -85,59 +84,121 @@ class DB
         return $this;
     }
 
-    /* 
-        SELECT function
-        @return an array of rows -> in case of selecting a single item, 
-        only the first element of the array should be returned
-        (with res[0])
-    */
-    public function executeQuery(string $sql, array $params = []): array | null
+    // General query executor
+    public function execute($sql, $params = [])
     {
         try {
-            $stmt = $this->conn->prepare($sql);
+            $stmt = $this->pdo->prepare($sql);
             $stmt->execute($params);
-            return $stmt->fetchAll();
+            return $stmt;
         } catch (PDOException $e) {
-            $this->handleError("Query execution failed: " . $e->getMessage(), 500);
+            $this->handleError($e->getMessage(), (int)$e->getCode());
+            return false;
         }
-        return null;
     }
 
-    // POST function
-    public function insert(string $sql, array $params = []): int | null | bool | string
+    // SELECT multiple rows
+    public function select($table, $conditions = [], $fetchMode = PDO::FETCH_ASSOC)
     {
-        try {
-            $stmt = $this->conn->prepare($sql);
-            $stmt->execute($params);
-            return $this->conn->lastInsertId();
-        } catch (PDOException $e) {
-            $this->handleError("Insert failed: " . $e->getMessage(), 500);
-        }
+        $sql = "SELECT * FROM $table";
+        $params = [];
 
-        return null;
-    }
-
-    // PUT function
-    public function update(string $sql, array $params = []): int | null
-    {
-        try {
-            $stmt = $this->conn->prepare($sql);
-            $stmt->execute($params);
-            return $stmt->rowCount();
-        } catch (PDOException $e) {
-            $this->handleError("Update failed: " . $e->getMessage(), 500);
+        if (!empty($conditions)) {
+            $where = [];
+            foreach ($conditions as $key => $value) {
+                if ($value === null) {
+                    // *** Use IS NULL for null values ***
+                    $where[] = "$key IS NULL";
+                } else {
+                    // *** Use = ? for non-null values ***
+                    $where[] = "$key = ?";
+                    $params[] = $value; // Add the value to be bound
+                }
+            }
+            $sql .= " WHERE " . implode(' AND ', $where);
         }
 
-        return null;
+        $stmt = $this->execute($sql, $params);
+        return $stmt ? $stmt->fetchAll($fetchMode) : false;
     }
 
-    // DELETE function
-    public function delete(string $sql, array $params = []): int
+    // SELECT single row
+    public function selectOne($table, $conditions = [], $fetchMode = PDO::FETCH_ASSOC)
     {
-        return $this->update($sql, $params);
+        $result = $this->select($table, $conditions, $fetchMode);
+        return $result ? $result[0] : false;
     }
 
-    // send the final response
+    // INSERT
+    public function insert($table, $data)
+    {
+        $columns = implode(', ', array_keys($data));
+        $placeholders = implode(', ', array_fill(0, count($data), '?'));
+        $sql = "INSERT INTO $table ($columns) VALUES ($placeholders)";
+
+        $stmt = $this->execute($sql, array_values($data));
+        return $stmt ? $this->pdo->lastInsertId() : false;
+    }
+
+    // UPDATE
+    public function update($table, $data, $conditions)
+    {
+        $set = [];
+        $params = [];
+
+        foreach ($data as $key => $value) {
+            $set[] = "$key = ?";
+            $params[] = $value;
+        }
+
+        $where = [];
+        foreach ($conditions as $key => $value) {
+            $where[] = "$key = ?";
+            $params[] = $value;
+        }
+
+        $sql = "UPDATE $table SET " . implode(', ', $set) . " WHERE " . implode(' AND ', $where);
+        $stmt = $this->execute($sql, $params);
+        return $stmt ? $stmt->rowCount() : false;
+    }
+
+    // DELETE
+    public function delete($table, $conditions)
+    {
+        $where = [];
+        $params = [];
+
+        foreach ($conditions as $key => $value) {
+            $where[] = "$key = ?";
+            $params[] = $value;
+        }
+
+        $sql = "DELETE FROM $table WHERE " . implode(' AND ', $where);
+        $stmt = $this->execute($sql, $params);
+        return $stmt ? $stmt->rowCount() : false;
+    }
+
+    // Count
+    public function count($table, $conditions = [], $fetchMode = PDO::FETCH_ASSOC)
+    {
+        $sql = "SELECT COUNT(*) AS count FROM $table";
+        $params = [];
+
+        if (!empty($conditions)) {
+            $where = [];
+            foreach ($conditions as $key => $value) {
+                $where[] = "$key = ?";
+                $params[] = $value;
+            }
+            $sql .= " WHERE " . implode(' AND ', $where);
+        }
+
+        $stmt = $this->execute($sql, $params);
+        $result = $stmt ? $stmt->fetchAll($fetchMode) : false;
+        return $result ? $result[0] : false;
+    }
+
+    // Send the final response
     public function send(): void
     {
         $this->addCorsHeaders();
@@ -157,10 +218,5 @@ class DB
         $this->setStatus($status)
             ->setResponse(["error" => $message])
             ->send();
-    }
-
-    public function __destruct()
-    {
-        $this->conn = null;
     }
 }

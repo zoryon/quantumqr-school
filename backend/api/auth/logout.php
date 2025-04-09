@@ -48,7 +48,6 @@ try {
         ])
         ->send();
 } catch (Exception $e) {
-    error_log($e->getMessage());
     $db->setStatus(500)
         ->setResponse([
             'success' => false,

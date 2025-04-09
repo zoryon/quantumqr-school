@@ -57,13 +57,15 @@ try {
     }
 
     // Creazione utente
-    $users = $db->executeQuery(
+    $stmt = $db->execute(
         "SELECT * FROM users WHERE (email = ? OR username = ?) AND isEmailConfirmed = 1",
         [
             $input['emailOrUsername'],
-            $input['emailOrUsername']
+            $input['emailOrUsername'],
         ]
     );
+
+    $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     if (empty($users)) {
         $db->setStatus(404)

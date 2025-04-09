@@ -59,11 +59,15 @@ try {
         implode(' ', $joins)
     );
 
-    // Execute query
-    $qrCodes = $db->executeQuery($sql, [$userId]);
+    // Execute query and fetch results
+    $stmt = $db->execute($sql, [$userId]);
+    if ($stmt === false) {
+        throw new Exception('Failed to execute query');
+    }
 
+    $qrCodes = $stmt->fetchAll(PDO::FETCH_ASSOC);
     if ($qrCodes === null) {
-        throw new Exception('Failed to fetch QR codes');
+        throw new Exception('No QR codes found for this user');
     }
 
     // Transform results

@@ -43,10 +43,10 @@ try {
     }
 
     // Update email confirmation status
-    $res = $db->update(
-        "UPDATE users SET isEmailConfirmed = 1 WHERE id = ? AND isEmailConfirmed = 0",
-        [$userId]
-    );
+    $res = $db->update("users", ["isEmailConfirmed" => 1], [
+        "id" => $userId, 
+        "isEmailConfirmed" => 0
+    ]);
 
     // Check if user was updated
     if (!$res) {
@@ -54,6 +54,22 @@ try {
             ->setResponse([
                 'success' => false,
                 'message' => 'User not found',
+                'body' => null
+            ])
+            ->send();
+    }
+
+    // Create free subscription for the user
+    $res = $db->insert("subscriptions", [
+        "userId" => $userId, 
+        "tierId" => 1
+    ]);
+
+    if (!$res) {
+        $db->setStatus(500)
+            ->setResponse([
+                'success' => false,
+                'message' => 'Failed to create subscription',
                 'body' => null
             ])
             ->send();
@@ -67,7 +83,6 @@ try {
             'body' => null
         ])
         ->send();
-
 } catch (ExpiredException $e) {
     $db->setStatus(401)
         ->setResponse([

@@ -10,7 +10,7 @@ CREATE TABLE users (
     hasAllowedEmails BOOLEAN DEFAULT FALSE,
     isEmailConfirmed BOOLEAN DEFAULT FALSE,
     createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
 CREATE TABLE cardtypes (
@@ -35,11 +35,11 @@ CREATE TABLE paymentmethods (
     FOREIGN KEY (cardTypeId) REFERENCES cardtypes(id)
 );
 
-CREATE TABLE subscription (
+CREATE TABLE subscriptions (
     id INT PRIMARY KEY AUTO_INCREMENT,
     userId INT NOT NULL,
     tierId INT NOT NULL,
-    paymentMethodId INT NOT NULL,
+    paymentMethodId INT ,
     createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     canceledAt TIMESTAMP NULL,
@@ -77,19 +77,19 @@ CREATE TABLE vcardqrcodes (
     FOREIGN KEY (qrCodeId) REFERENCES qrcodes(id) ON DELETE CASCADE
 );
 
--- TODO: automatically add tiers and cardtypes here
--- tiers
+-- Add default server variables
+-- Tiers
 INSERT INTO tiers (name, price, description, maxQRCodes) VALUES ("Free", 0, "Free plan which is automatically set for any person who registers.", 10);
 INSERT INTO tiers (name, price, description, maxQRCodes) VALUES ("Basic", 4.99, "Basic plan for people who don't need many qr codes, but still get value from them.", 30);
 INSERT INTO tiers (name, price, description, maxQRCodes) VALUES ("Pro", 9.99, "Pro plan for people who get quite a lot of value from them.", 50);
 INSERT INTO tiers (name, price, description, maxQRCodes) VALUES ("Enterprise", 24.99, "Enterprise plan for organizations which use qr codes often.", 200);
 
--- cardtypes
+-- Cardtypes
 INSERT INTO cardtypes (name) VALUES ("Visa");
 INSERT INTO cardtypes (name) VALUES ("Master Card");
 
--- paymentmethods
-INSERT INTO paymentmethods ();
+-- HELPERS
+-- UPDATE subscriptions SET tierId = 2 WHERE userId = 1;
 
 -- FUNCTIONS AND PROCEDURES
 -- Clean up unconfirmed users procedure

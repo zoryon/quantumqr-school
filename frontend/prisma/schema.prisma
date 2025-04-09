@@ -13,43 +13,32 @@ model classicqrcodes {
   qrcodes    qrcodes @relation(fields: [qrCodeId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "classicqrcodes_ibfk_1")
 }
 
-model qrcodepermissions {
-  qrCodeId Int
-  userId   Int
-  canEdit  Boolean? @default(false)
-  qrcodes  qrcodes  @relation(fields: [qrCodeId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "qrcodepermissions_ibfk_1")
-  users    users    @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "qrcodepermissions_ibfk_2")
-
-  @@id([qrCodeId, userId])
-  @@index([userId], map: "userId")
-}
-
 model qrcodes {
-  id                Int                 @id @default(autoincrement())
-  name              String              @db.VarChar(255)
-  userId            Int
-  url               String              @db.Text
-  scans             Int                 @default(0)
-  createdAt         DateTime?           @default(now()) @db.DateTime(0)
-  updatedAt         DateTime?           @default(now()) @db.DateTime(0)
-  classicqrcodes    classicqrcodes?
-  qrcodepermissions qrcodepermissions[]
-  users             users               @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "qrcodes_ibfk_1")
-  vcardqrcodes      vcardqrcodes?
+  id             Int             @id @default(autoincrement())
+  name           String          @db.VarChar(255)
+  userId         Int
+  url            String          @db.Text
+  scans          Int             @default(0)
+  createdAt      DateTime?       @default(now()) @db.DateTime(0)
+  updatedAt      DateTime        @default(now()) @db.Timestamp(0)
+  classicqrcodes classicqrcodes?
+  users          users           @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "qrcodes_ibfk_1")
+  vcardqrcodes   vcardqrcodes?
 
   @@unique([userId, name], map: "uniqueUserIdName")
 }
 
 model users {
-  id                Int                 @id @default(autoincrement())
-  email             String              @unique(map: "email") @db.VarChar(255)
-  username          String              @unique(map: "username") @db.VarChar(255)
-  password          String              @db.VarChar(255)
-  hasAllowedEmails  Boolean?            @default(false)
-  isEmailConfirmed  Boolean?            @default(false)
-  createdAt         DateTime            @default(now()) @db.Timestamp(0)
-  qrcodepermissions qrcodepermissions[]
-  qrcodes           qrcodes[]
+  id               Int            @id @default(autoincrement())
+  email            String         @unique(map: "email") @db.VarChar(255)
+  username         String         @unique(map: "username") @db.VarChar(255)
+  password         String         @db.VarChar(255)
+  hasAllowedEmails Boolean?       @default(false)
+  isEmailConfirmed Boolean?       @default(false)
+  createdAt        DateTime       @default(now()) @db.Timestamp(0)
+  updatedAt        DateTime       @default(now()) @db.Timestamp(0)
+  qrcodes          qrcodes[]
+  subscription     subscription[]
 }
 
 model vcardqrcodes {
@@ -61,4 +50,48 @@ model vcardqrcodes {
   websiteUrl  String? @db.VarChar(255)
   address     String? @db.VarChar(255)
   qrcodes     qrcodes @relation(fields: [qrCodeId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "vcardqrcodes_ibfk_1")
+}
+
+model cardtypes {
+  id             Int              @id @default(autoincrement())
+  name           String           @db.VarChar(255)
+  paymentmethods paymentmethods[]
+}
+
+model paymentmethods {
+  id           Int            @id @default(autoincrement())
+  cardTypeId   Int
+  iban         String         @unique(map: "iban") @db.VarChar(255)
+  cardtypes    cardtypes      @relation(fields: [cardTypeId], references: [id], onUpdate: Restrict, map: "paymentmethods_ibfk_1")
+  subscription subscription[]
+
+  @@index([cardTypeId], map: "cardTypeId")
+}
+
+model subscription {
+  id              Int             @id @default(autoincrement())
+  userId          Int
+  tierId          Int
+  paymentMethodId Int?
+  createdAt       DateTime        @default(now()) @db.Timestamp(0)
+  updatedAt       DateTime        @default(now()) @db.Timestamp(0)
+  canceledAt      DateTime?       @db.Timestamp(0)
+  users           users           @relation(fields: [userId], references: [id], onUpdate: Restrict, map: "subscription_ibfk_1")
+  tiers           tiers           @relation(fields: [tierId], references: [id], onUpdate: Restrict, map: "subscription_ibfk_2")
+  paymentmethods  paymentmethods? @relation(fields: [paymentMethodId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "subscription_ibfk_3")
+
+  @@index([paymentMethodId], map: "paymentMethodId")
+  @@index([tierId], map: "tierId")
+  @@index([userId], map: "userId")
+}
+
+model tiers {
+  id           Int            @id @default(autoincrement())
+  name         String         @db.VarChar(255)
+  price        Decimal        @db.Decimal(10, 2)
+  description  String?        @db.Text
+  maxQRCodes   Int?           @default(10)
+  createdAt    DateTime       @default(now()) @db.Timestamp(0)
+  updatedAt    DateTime       @default(now()) @db.Timestamp(0)
+  subscription subscription[]
 }

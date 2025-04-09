@@ -32,6 +32,44 @@ try {
             ->send();
     }
 
+    // Check if creation is allowed based on user's tier
+    $subscription = $db->selectOne("subscriptions", [
+        "userId" => $userId, 
+        "canceledAt" => null
+    ]);
+    if (!$subscription) {
+        $db->setStatus(403)
+            ->setResponse([
+                'success' => false,
+                'message' => 'You are not subscribed to any plan',
+                'body' => null
+            ])
+            ->send();
+    }
+    $userTier = $db->selectOne("tiers", ["id" => $subscription["tierId"]]);
+
+    $qrCodesNum = $db->count("qrcodes", ["userId" => $userId]);
+
+    if(!$userTier) {
+        $db->setStatus(404)
+            ->setResponse([
+                'success' => false,
+                'message' => 'Not found',
+                'body' => null
+            ])
+            ->send();
+    }
+
+    if ($qrCodesNum["count"] >= $userTier["maxQRCodes"]) {
+        $db->setStatus(403)
+            ->setResponse([
+                'success' => false,
+                'message' => 'You have reached the maximum number of QR codes for your plan',
+                'body' => null
+            ])
+            ->send();
+    }
+
     // Parse input
     $input = json_decode(file_get_contents('php://input'), true);
     

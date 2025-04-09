@@ -60,7 +60,7 @@ try {
     }
 
     // Find the user by email or username
-    $users = $db->executeQuery(
+    $stmt = $db->execute(
         "SELECT id, email, username
         FROM users
         WHERE email = ? OR username = ?
@@ -68,6 +68,7 @@ try {
         ", 
         [$input['emailOrUsername'], $input['emailOrUsername']]
     );
+    $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     if (empty($users)) {
         $db->setStatus(404)

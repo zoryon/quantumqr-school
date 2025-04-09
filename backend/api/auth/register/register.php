@@ -93,10 +93,12 @@ try {
     }
 
     // Controllo utente esistente
-    $existingUser = $db->executeQuery(
+    $stmt = $db->execute(
         "SELECT * FROM users WHERE email = ? OR username = ?",
         [$input['email'], $input['username']]
     );
+    $existingUserArray = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $existingUser = $existingUserArray[0] ?? null;
 
     if (!empty($existingUser)) {
         $db->setStatus(409)
@@ -112,27 +114,13 @@ try {
     $hashedPasswd = password_hash($input['password'], PASSWORD_BCRYPT);
 
     // Creazione utente
-    $userId = $db->insert(
-        "INSERT INTO users (email, username, password, hasAllowedEmails, isEmailConfirmed) 
-            VALUES (?, ?, ?, ?, ?)",
-        [
-            $input['email'],
-            $input['username'],
-            $hashedPasswd,
-            $input['hasAllowedEmails'] ?? false,
-            false
-        ]
-    );
-
-    if (!$userId) {
-        $db->setStatus(500)
-            ->setResponse([
-                'success' => false,
-                'message' => 'An error occurred on our end. Please try again later.',
-                'body' => null
-            ])
-            ->send();
-    }
+    $userId = $db->insert("users", [
+        "email" => $input['email'],
+        "username" => $input['username'],
+        "password" => $hashedPasswd,
+        "hasAllowedEmails" => $input['hasAllowedEmails'] ?? false,
+        "isEmailConfirmed" => false
+    ]);
 
     // Generazione token JWT
     $payload = [

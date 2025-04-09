@@ -67,10 +67,7 @@ try {
     }
 
     // Recupero QR code base
-    $baseQr = $db->executeQuery(
-        "SELECT * FROM qrcodes WHERE id = ?",
-        [$qrCodeId]
-    );
+    $baseQr = $db->selectOne("qrcodes", ["id" => $qrCodeId]);
 
     if (empty($baseQr)) {
         $db->setStatus(404)
@@ -82,17 +79,14 @@ try {
             ->send();
     }
 
-    $baseQr = $baseQr[0];
     $isOwner = (int)$userId === (int)$baseQr['userId'];
 
-    // Recupero dati specifici usando TYPE_MAPPING
+    // --- Fetch Type-Specific Data ---
     $typeConfig = TYPE_MAPPING[$type];
+    $specificTableName = $typeConfig['table'];
     $fields = implode(', ', $typeConfig['fields']);
     
-    $specificData = $db->executeQuery(
-        "SELECT $fields FROM {$typeConfig['table']} WHERE qrCodeId = ?",
-        [$qrCodeId]
-    );
+    $specificData = $db->selectOne($specificTableName, ["qrCodeId" => $qrCodeId]);
 
     if (empty($specificData)) {
         $db->setStatus(404)
@@ -103,8 +97,6 @@ try {
             ])
             ->send();
     }
-
-    $specificData = $specificData[0];
 
     // Costruzione risposta
     $response = [
@@ -138,7 +130,6 @@ try {
             'body' => $response
         ])
         ->send();
-
 } catch (Exception $e) {
     error_log('QR code fetch error: ' . $e->getMessage());
     $db->setStatus(500)
