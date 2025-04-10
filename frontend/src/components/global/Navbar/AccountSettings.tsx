@@ -8,10 +8,19 @@ import {
 import { Button } from "../../ui/button";
 import { PublicUser } from "@/types";
 import LogoutBtn from "@/components/Buttons/LogoutBtn";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 const AccountSettings = ({ userData }: { userData: PublicUser}) => {
+    const router = useRouter();
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+    const handleDialogClose = () => {
+        setIsDialogOpen(false);
+    };
+
     return (
-        <Dialog>
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
                 <button className="flex items-center gap-2 rounded-full bg-gray-800/50 px-3 py-1.5 transition-all hover:bg-gray-700/60">
                     <i className="fas fa-user-astronaut text-lg text-purple-400" />
@@ -47,8 +56,11 @@ const AccountSettings = ({ userData }: { userData: PublicUser}) => {
                     <div className="space-y-2">
                         <Button
                             variant="outline"
-                            className="w-full bg-gray-700/50 border-gray-600 hover:bg-gray-600/50 c"
-                            disabled // TODO: implement this functionality and remove disabled
+                            className="w-full bg-gray-700/50 border-gray-600 hover:bg-gray-600/50"
+                            onClick={() => {
+                                router.push("/profile");
+                                handleDialogClose();
+                            }}
                         >
                             View Profile
                         </Button>

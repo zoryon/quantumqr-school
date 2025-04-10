@@ -11,6 +11,7 @@ export type User = {
     email: string, // User's email address
     username: string, // User's chosen username
     password: string, // User's hashed password (for authentication)
+    createdAt: Date | null
 }
 
 /**

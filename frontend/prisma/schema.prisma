@@ -29,16 +29,16 @@ model qrcodes {
 }
 
 model users {
-  id               Int            @id @default(autoincrement())
-  email            String         @unique(map: "email") @db.VarChar(255)
-  username         String         @unique(map: "username") @db.VarChar(255)
-  password         String         @db.VarChar(255)
-  hasAllowedEmails Boolean?       @default(false)
-  isEmailConfirmed Boolean?       @default(false)
-  createdAt        DateTime       @default(now()) @db.Timestamp(0)
-  updatedAt        DateTime       @default(now()) @db.Timestamp(0)
+  id               Int             @id @default(autoincrement())
+  email            String          @unique(map: "email") @db.VarChar(255)
+  username         String          @unique(map: "username") @db.VarChar(255)
+  password         String          @db.VarChar(255)
+  hasAllowedEmails Boolean?        @default(false)
+  isEmailConfirmed Boolean?        @default(false)
+  createdAt        DateTime        @default(now()) @db.Timestamp(0)
+  updatedAt        DateTime        @default(now()) @db.Timestamp(0)
   qrcodes          qrcodes[]
-  subscription     subscription[]
+  subscriptions    subscriptions[]
 }
 
 model vcardqrcodes {
@@ -59,16 +59,27 @@ model cardtypes {
 }
 
 model paymentmethods {
-  id           Int            @id @default(autoincrement())
-  cardTypeId   Int
-  iban         String         @unique(map: "iban") @db.VarChar(255)
-  cardtypes    cardtypes      @relation(fields: [cardTypeId], references: [id], onUpdate: Restrict, map: "paymentmethods_ibfk_1")
-  subscription subscription[]
+  id            Int             @id @default(autoincrement())
+  cardTypeId    Int
+  iban          String          @unique(map: "iban") @db.VarChar(255)
+  cardtypes     cardtypes       @relation(fields: [cardTypeId], references: [id], onUpdate: Restrict, map: "paymentmethods_ibfk_1")
+  subscriptions subscriptions[]
 
   @@index([cardTypeId], map: "cardTypeId")
 }
 
-model subscription {
+model tiers {
+  id            Int             @id @default(autoincrement())
+  name          String          @db.VarChar(255)
+  price         Decimal         @db.Decimal(10, 2)
+  description   String?         @db.Text
+  maxQRCodes    Int?            @default(10)
+  createdAt     DateTime        @default(now()) @db.Timestamp(0)
+  updatedAt     DateTime        @default(now()) @db.Timestamp(0)
+  subscriptions subscriptions[]
+}
+
+model subscriptions {
   id              Int             @id @default(autoincrement())
   userId          Int
   tierId          Int
@@ -76,22 +87,11 @@ model subscription {
   createdAt       DateTime        @default(now()) @db.Timestamp(0)
   updatedAt       DateTime        @default(now()) @db.Timestamp(0)
   canceledAt      DateTime?       @db.Timestamp(0)
-  users           users           @relation(fields: [userId], references: [id], onUpdate: Restrict, map: "subscription_ibfk_1")
-  tiers           tiers           @relation(fields: [tierId], references: [id], onUpdate: Restrict, map: "subscription_ibfk_2")
-  paymentmethods  paymentmethods? @relation(fields: [paymentMethodId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "subscription_ibfk_3")
+  users           users           @relation(fields: [userId], references: [id], onUpdate: Restrict, map: "subscriptions_ibfk_1")
+  tiers           tiers           @relation(fields: [tierId], references: [id], onUpdate: Restrict, map: "subscriptions_ibfk_2")
+  paymentmethods  paymentmethods? @relation(fields: [paymentMethodId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "subscriptions_ibfk_3")
 
   @@index([paymentMethodId], map: "paymentMethodId")
   @@index([tierId], map: "tierId")
   @@index([userId], map: "userId")
-}
-
-model tiers {
-  id           Int            @id @default(autoincrement())
-  name         String         @db.VarChar(255)
-  price        Decimal        @db.Decimal(10, 2)
-  description  String?        @db.Text
-  maxQRCodes   Int?           @default(10)
-  createdAt    DateTime       @default(now()) @db.Timestamp(0)
-  updatedAt    DateTime       @default(now()) @db.Timestamp(0)
-  subscription subscription[]
 }
