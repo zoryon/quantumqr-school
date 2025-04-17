@@ -23,7 +23,7 @@ const TYPE_MAPPING = [
     ],
     'classics' => [
         'table' => 'classicqrcodes',
-        'fields' => ['websiteUrl']
+        'fields' => ['targetUrl']
     ]
 ];
 

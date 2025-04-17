@@ -17,9 +17,9 @@ const TYPE_MAPPING = [
     ],
     'classics' => [
         'table' => 'classicqrcodes',
-        'fields' => ['websiteUrl'],
+        'fields' => ['targetUrl'],
         'validation' => [
-            'websiteUrl' => 'required|url|max:255'
+            'targetUrl' => 'required|url|max:255'
         ]
     ]
 ];

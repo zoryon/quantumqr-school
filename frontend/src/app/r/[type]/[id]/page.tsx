@@ -12,7 +12,7 @@ import { useParams } from "next/navigation";
 const RedirectPage = () => {
     const params = useParams();
     const [notFound, setNotFound] = useState(false);
-    const [qrCode, setQrCode] = useState<{ websiteUrl: string } | null>(null);
+    const [qrCode, setQrCode] = useState<{ targetUrl: string } | null>(null);
 
     const { type, id } = params;
 
@@ -76,7 +76,7 @@ const RedirectPage = () => {
     return qrCode && (
         <ScanIncrementer
             qrCodeId={Number(params.id)}
-            redirectUrl={qrCode.websiteUrl}
+            redirectUrl={qrCode.targetUrl}
         />
     );
 }

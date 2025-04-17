@@ -74,8 +74,7 @@ const baseQRCodeSchema = z.object({
  */
 export const classicDetailsFormSchema = baseQRCodeSchema.merge(
     z.object({
-        name: z.string().min(2).max(25),
-        websiteUrl: z.string().url().nullable(),
+        targetUrl: z.string().url().nullable(),
     })
 );
 

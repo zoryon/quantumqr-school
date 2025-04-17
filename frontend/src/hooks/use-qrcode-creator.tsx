@@ -3,8 +3,8 @@
 import { cardDetailsFormSchema, CardDetailsFormValues, classicDetailsFormSchema, ClassicDetailsFormValues } from "@/lib/schemas";
 import { QRCodeTypes, DesignOptions, QRCode, ResultType } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { createContext, useCallback, useContext, useEffect, useState } from "react"
-import { useForm } from "react-hook-form";
+import { createContext, useCallback, useContext, useEffect, useState } from "react";
+import { useForm, UseFormReturn } from "react-hook-form";
 import { useQrCodeList } from "./use-qrcode-list";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/endpoint-builder";
@@ -60,6 +60,7 @@ export function QrCreatorProvider({ children }: { children: React.ReactNode }) {
         const baseDefaults = {
             name: "",
             websiteUrl: "",
+            targetUrl: "",
             firstName: "",
             lastName: "",
             email: "",
@@ -74,7 +75,7 @@ export function QrCreatorProvider({ children }: { children: React.ReactNode }) {
                     defaultValues: {
                         ...baseDefaults,
                         name: "My Professional Card",
-                        websiteUrl: "https://company.com"
+                        targetUrl: "https://company.com"
                     } as ClassicDetailsFormValues
                 };
             case "vCards":
@@ -101,7 +102,7 @@ export function QrCreatorProvider({ children }: { children: React.ReactNode }) {
 
     // Initialize the form using the schema and default values
     const form = useForm<FormValues>({
-        resolver: zodResolver(schema) as any, // Use Zod for form validation
+        resolver: zodResolver(schema as any) , // Use Zod for form validation
         defaultValues: defaultValues as FormValues // Set the default form values
     });
 
@@ -154,6 +155,7 @@ export function QrCreatorProvider({ children }: { children: React.ReactNode }) {
                 email: (formValues as CardDetailsFormValues).email || null,
                 phoneNumber: (formValues as CardDetailsFormValues).phoneNumber || null,
                 websiteUrl: formValues.websiteUrl || null,
+                targetUrl: formValues.targetUrl || null,
                 address: (formValues as CardDetailsFormValues).address || null,
             };
 

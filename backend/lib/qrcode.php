@@ -108,7 +108,7 @@ function createClassicQR(int $userId, array $input)
     $db = DB::getInstance();
 
     // Validate required fields
-    $required = ['name', 'websiteUrl'];
+    $required = ['name', 'targetUrl'];
     foreach ($required as $field) {
         if (empty(trim($input[$field] ?? ''))) {
             throw new Exception("Missing required field: $field");
@@ -116,7 +116,7 @@ function createClassicQR(int $userId, array $input)
     }
 
     // Validate website URL
-    if (empty(trim($input['websiteUrl'] ?? ''))) {
+    if (empty(trim($input['targetUrl'] ?? ''))) {
         throw new Exception("Website URL is required");
     }
 
@@ -149,7 +149,7 @@ function createClassicQR(int $userId, array $input)
         // 2. Insert classic QR specific details
         $classicData = [
             'qrCodeId' => $qrId,
-            'websiteUrl' => trim($input['websiteUrl'])
+            'targetUrl' => trim($input['targetUrl'])
         ];
         $db->insert("classicqrcodes", $classicData);
 

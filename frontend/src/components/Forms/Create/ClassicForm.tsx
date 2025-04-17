@@ -34,7 +34,7 @@ const ClassicForm = ({ onSubmit } : { onSubmit: any }) => {
                 />
                 <FormField
                     control={form.control}
-                    name="websiteUrl"
+                    name="targetUrl"
                     render={({ field }) => (
                         <FormItem>
                             <FormLabel className="text-gray-300">Website url</FormLabel>
