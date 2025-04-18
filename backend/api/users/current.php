@@ -34,16 +34,21 @@ try {
     }
 
     // Find confirmed user
-    $user = $db->selectOne("users", [
-        "id" => $userId, 
-        "isEmailConfirmed" => 1
-    ]);
+    $query = "SELECT u.*, t.name AS tier,
+            (SELECT COUNT(*) FROM qrcodes WHERE userId = u.id) AS qrCodesCount,
+            (SELECT COALESCE(SUM(scans), 0) FROM qrcodes WHERE userId = u.id) AS totalScans
+          FROM users u
+          JOIN subscriptions s ON u.id = s.userId
+          JOIN tiers t ON s.tierId = t.id
+          WHERE u.id = ?";
+    $stmt = $db->execute($query, [$userId]);
+    $userData = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    if (empty($user)) {
+    if (empty($userData)) {
         $db->setStatus(404)
             ->setResponse([
                 'success' => false,
-                'message' => 'User not found',
+                'message' => 'User not found or subscription missing',
                 'body' => null
             ])
             ->send();
@@ -54,10 +59,9 @@ try {
         ->setResponse([
             'success' => true,
             'message' => 'User found successfully',
-            'body' => $user
+            'body' => $userData
         ])
         ->send();
-
 } catch (Exception $e) {
     error_log($e->getMessage());
     $db->setStatus(500)

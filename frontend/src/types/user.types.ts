@@ -5,19 +5,26 @@
  * - `email`: The email address of the user.
  * - `username`: The user's chosen username.
  * - `password`: The hashed password for user authentication.
+ * - `createdAt`: Date when the user account was created
+ * - `tier`: The subscription tier of the user (added from backend response)
  */
 export type User = {
-    id: number, // Unique identifier for the user
-    email: string, // User's email address
-    username: string, // User's chosen username
-    password: string, // User's hashed password (for authentication)
+    id: number,
+    email: string,
+    username: string,
+    password: string,
     createdAt: Date | null
 }
 
 /**
- * Represents a PublicUser, which is a version of the `User` type excluding sensitive fields.
+ * Represents a PublicUser with safe-to-expose fields + subscription tier.
  * 
- * - This type omits the `id` and `password` fields from the `User` type.
- * - Useful for situations where you want to expose user data without revealing sensitive information.
+ * - Omits sensitive `id` and `password` fields
+ * - Includes `tier` from subscription data
+ * - Maintains `createdAt` for profile information
  */
-export type PublicUser = Omit<User, "id" | "password">;
+export type PublicUser = Omit<User, "id" | "password"> & {
+    tier: string;
+    qrCodesCount: number;
+    totalScans: number;
+};

@@ -13,9 +13,7 @@ const ProfilePage = () => {
     useEffect(() => {
         const fetchSessionUser = async () => {
             try {
-                const res: ResultType = await fetch(
-                    api.users.current.toString()
-                ).then(res => res.json());
+                const res: ResultType = await fetch(api.users.current.toString()).then(res => res.json());
 
                 if (!res.success) throw new Error("Failed to fetch user session");
 
@@ -42,7 +40,7 @@ const ProfilePage = () => {
                         <div className="text-center">
                             <h1 className="text-4xl font-bold mb-2">{userData.username}</h1>
                             <Badge variant="outline" className="bg-purple-600/20 text-purple-300 border-purple-400/30">
-                                CURRENT TIER
+                                {userData.tier} plan
                             </Badge>
                         </div>
                     </div>
@@ -56,11 +54,11 @@ const ProfilePage = () => {
                     <Card className="bg-gray-800/50 border-gray-700 col-span-1 md:col-span-3">
                         <CardContent className="grid grid-cols-3 divide-x divide-gray-700 py-4">
                             <div className="text-center p-4">
-                                <p className="text-2xl font-bold text-purple-400">42</p>
+                                <p className="text-2xl font-bold text-purple-400">{userData.qrCodesCount}</p>
                                 <p className="text-gray-400">QR Codes</p>
                             </div>
                             <div className="text-center p-4">
-                                <p className="text-2xl font-bold text-indigo-400">1.2k</p>
+                                <p className="text-2xl font-bold text-indigo-400">{userData.totalScans}</p>
                                 <p className="text-gray-400">Total scans</p>
                             </div>
                             <div className="text-center p-4">

@@ -114,7 +114,7 @@ try {
                 ->send();
     }
 
-    $db->setStatus(200)
+    $db->setStatus(201)
         ->setResponse([
             'success' => true,
             'message' => 'QR code created successfully',

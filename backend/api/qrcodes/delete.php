@@ -54,22 +54,6 @@ try {
             ->send();
     }
 
-    // Verify QR code ownership
-    $qrCode = $db->selectOne("qrcodes", [
-        "id" => $qrId, 
-        "userId" => $userId
-    ]);
-
-    if (empty($qrCode)) {
-        $db->setStatus(404)
-            ->setResponse([
-                'success' => false,
-                'message' => 'QR code not found',
-                'body' => null
-            ])
-            ->send();
-    }
-
     // Perform deletion
     $affectedRows = $db->delete("qrcodes", [
         "id" => $qrId, 
@@ -87,11 +71,11 @@ try {
     }
 
     // Return deleted QR code data
-    $db->setStatus(200)
+    $db->setStatus(410)
         ->setResponse([
             'success' => true,
             'message' => 'QR code deleted',
-            'body' => $qrCode[0]
+            'body' => $affectedRows
         ])
         ->send();
 } catch (Exception $e) {
