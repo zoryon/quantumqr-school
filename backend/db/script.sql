@@ -62,7 +62,7 @@ CREATE TABLE qrcodes (
 
 CREATE TABLE classicqrcodes (
     qrCodeId INT PRIMARY KEY,
-    websiteUrl VARCHAR(255),
+    targetUrl VARCHAR(255),
     FOREIGN KEY (qrCodeId) REFERENCES qrcodes(id) ON DELETE CASCADE
 );
 

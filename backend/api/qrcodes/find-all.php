@@ -42,7 +42,7 @@ try {
         'q.createdAt', 'q.updatedAt', 'q.scans',
         'v.firstName', 'v.lastName', 'v.phoneNumber', 
         'v.email', 'v.address', 'v.websiteUrl',
-        'c.targetUrl AS classicWebsite'
+        'c.targetUrl'
     ];
 
     $joins = [];
@@ -96,10 +96,10 @@ try {
                     break;
                 
                 case 'classics':
-                    if (!empty($qr['classicWebsite'])) { 
+                    if (!empty($qr['targetUrl'])) { 
                         $type = $mapping['type'];
                         $relationData = [
-                            'targetUrl' => $qr['classicWebsite']
+                            'targetUrl' => $qr['targetUrl']
                         ];
                         break 2;
                     }

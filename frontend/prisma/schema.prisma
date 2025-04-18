@@ -8,9 +8,9 @@ datasource db {
 }
 
 model classicqrcodes {
-  qrCodeId  Int     @id
-  targetUrl String? @db.VarChar(255)
-  qrcodes   qrcodes @relation(fields: [qrCodeId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "classicqrcodes_ibfk_1")
+  qrCodeId   Int     @id
+  websiteUrl String? @db.VarChar(255)
+  qrcodes    qrcodes @relation(fields: [qrCodeId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "classicqrcodes_ibfk_1")
 }
 
 model qrcodes {
