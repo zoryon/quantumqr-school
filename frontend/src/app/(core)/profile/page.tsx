@@ -6,8 +6,10 @@ import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useRouter } from "next/navigation";
 
 const ProfilePage = () => {
+    const router = useRouter();
     const [userData, setUserData] = useState<PublicUser | null>(null);
 
     useEffect(() => {
@@ -37,11 +39,17 @@ const ProfilePage = () => {
                                 {userData.username[0].toUpperCase()}
                             </AvatarFallback>
                         </Avatar>
-                        <div className="text-center">
-                            <h1 className="text-4xl font-bold mb-2">{userData.username}</h1>
-                            <Badge variant="outline" className="bg-purple-600/20 text-purple-300 border-purple-400/30">
-                                {userData.tier} plan
-                            </Badge>
+                        <div className="text-center space-y-4">
+                            <h1 className="text-4xl font-bold">{userData.username}</h1>
+                            <div className="flex items-center gap-2">
+                                <Badge variant="outline" className="bg-purple-600/20 text-purple-300 border-purple-400/30">
+                                    {userData.tier} plan
+                                </Badge>
+                                <i 
+                                    className="fa-regular fa-circle-up text-xl text-yellow-500 cursor-pointer" 
+                                    onClick={() => router.push("/profile/upgrade")}
+                                />
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -74,7 +82,7 @@ const ProfilePage = () => {
                             Quantum Profile
                         </CardHeader>
                         <CardContent className="pt-4 text-gray-300 leading-relaxed">
-                            {"No bio available. Describe your quantum expertise!"}
+                            {"No bio available. Describe your expertise!"}
                         </CardContent>
                     </Card>
 
