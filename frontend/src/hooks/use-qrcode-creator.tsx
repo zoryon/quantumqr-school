@@ -92,7 +92,7 @@ export function QrCreatorProvider({ children }: { children: React.ReactNode }) {
                         websiteUrl: "https://company.com"
                     } as CardDetailsFormValues
                 };
-            // Add more cases here for future QR types
+            // Add HERE for other QR code types
             default:
                 throw new Error(`Unsupported qrType: ${qrType}`);
         }
@@ -188,7 +188,7 @@ export function QrCreatorProvider({ children }: { children: React.ReactNode }) {
                     },
                     ...prev.filter(qr => qr.id !== tempId)
                 ]);
-                    setCreated(true);
+                setCreated(true);
             } else {
                 setQrCodes(previousQrCodes);
             }
