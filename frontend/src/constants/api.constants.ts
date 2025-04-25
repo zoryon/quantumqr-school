@@ -25,4 +25,8 @@ export const API_CONFIG = {
     logout: { method: "GET" },
   },
   policies: { method: "GET" },
+  subscriptions: {
+    tiers: { method: "GET" },
+    change: { method: "POST" }
+  }
 } satisfies ApiDefinition;
