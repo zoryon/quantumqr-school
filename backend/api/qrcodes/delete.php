@@ -71,7 +71,7 @@ try {
     }
 
     // Return deleted QR code data
-    $db->setStatus(410)
+    $db->setStatus(200)
         ->setResponse([
             'success' => true,
             'message' => 'QR code deleted',
