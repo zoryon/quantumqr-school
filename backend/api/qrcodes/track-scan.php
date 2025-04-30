@@ -67,8 +67,7 @@ try {
     $updatedQrData = $db->selectOne("qrcodes", ["id" => $qrId]);
 
     if (!$updatedQrData) {
-        // This shouldn't happen if the update succeeded, but check for safety
-        $db->setStatus(404) // Or 500, as this indicates inconsistency
+        $db->setStatus(500)
             ->setResponse([
                 'success' => false,
                 'message' => 'QR code not found after update.',
@@ -86,7 +85,6 @@ try {
             ]
         ])
         ->send();
-
 } catch (Exception $e) {
     error_log('Scan count update error: ' . $e->getMessage());
     $db->setStatus(500)

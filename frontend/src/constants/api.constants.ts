@@ -9,7 +9,7 @@ export const API_CONFIG = {
     findAll: { method: "GET" },
     create: { method: "POST" },
     delete: { method: "DELETE" },
-    scan: { method: "POST" },
+    trackScan: { method: "POST" },
     update: { method: "PUT" },
   },
   auth: {

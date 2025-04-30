@@ -15,7 +15,6 @@ const LoginBtn = () => {
 
                 {/* Main button */}
                 <Button className="rounded-full relative bg-gradient-to-br from-[#0F172A] to-[#1E293B] text-gray-100 hover:text-white font-semibold gap-2 px-8 py-5 transition-all duration-300 overflow-hidden">
-
                     {/* Quantum energy line */}
                     <div className="absolute inset-0 opacity-20 group-hover:opacity-40 transition-opacity">
                         <div className="absolute top-0 left-1/4 w-1/2 h-[2px] bg-gradient-to-r from-transparent via-purple-400 to-transparent animate-quantum-line" />

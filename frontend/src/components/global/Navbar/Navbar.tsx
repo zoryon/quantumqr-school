@@ -1,33 +1,16 @@
 "use client";
 
-import { PublicUser, ResultType } from "@/types";
-import { useEffect, useState } from "react";
 import CreateBtn from "../../Buttons/CreateBtn";
 import Logo from "../Logo";
-import { api } from "@/lib/endpoint-builder";
 import AccountSettings from "./AccountSettings";
+import { useUserData } from "@/hooks/use-user-data";
 
 const Navbar = () => {
-    const [userData, setUserData] = useState<PublicUser | null>(null);
-
-    useEffect(() => {
-        const fetchSessionUser = async () => {
-            try {
-                const res: ResultType = await fetch(api.users.current.toString()).then(res => res.json());
-
-                if (!res.success) throw new Error("Failed to fetch user session");
-
-                setUserData(res.body as PublicUser);
-            } catch (error) {
-                console.error(error);
-            }
-        };
-        fetchSessionUser();
-    }, []);
+    const { userData } = useUserData(); 
 
     return (
         <>
-            <header className="sticky top-0 z-50 bg-gray-900/80 backdrop-blur-xl border-b border-gray-800">
+            <header className="sticky top-0 z-50 bg-gray-800/50 backdrop-blur-xl border-b border-gray-800">
                 <div className="mx-auto max-w-7xl px-4 sm:px-8">
                     <div className="flex h-16 items-center justify-between">
                         <Logo />

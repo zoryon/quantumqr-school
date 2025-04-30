@@ -1,27 +1,16 @@
 "use client";
 
+import { useUserData } from "@/hooks/use-user-data";
 import { api } from "@/lib/endpoint-builder";
-import { PublicUser, ResultType } from "@/types";
+import { ResultType } from "@/types";
 import { Tier } from "@/types/tier.types";
 import { useEffect, useState } from "react";
 
 const UpgradePage = () => {
-    const [userData, setUserData] = useState<PublicUser | null>(null);
+    const { userData } = useUserData();
     const [tiers, setTiers] = useState<Tier[] | null>(null);
 
     useEffect(() => {
-        async function fetchSessionUser() {
-            try {
-                const res: ResultType = await fetch(api.users.current.toString()).then(res => res.json());
-
-                if (!res.success) throw new Error("Failed to fetch user session");
-
-                setUserData(res.body as PublicUser);
-            } catch (error) {
-                console.error("Error fetching user data: ", error);
-            }
-        };
-
         async function fetchTiers() {
             try {
                 const res: ResultType = await fetch(api.subscriptions.tiers.toString()).then(res => res.json());
@@ -34,7 +23,6 @@ const UpgradePage = () => {
             }
         };
 
-        fetchSessionUser();
         fetchTiers();
     }, []);
 

@@ -12,7 +12,6 @@ const TYPE_MAPPING = [
         'validation' => [
             'firstName' => 'required|string|max:255',
             'lastName' => 'required|string|max:255',
-            // ... other validation rules
         ]
     ],
     'classics' => [

@@ -10,6 +10,7 @@ import CreateBtn from "@/components/Buttons/CreateBtn";
 import EditBtn from "@/components/Buttons/EditBtn";
 import { cn } from "@/lib/utils";
 import useSafeToast from "@/hooks/use-safe-toast";
+import ScanBtn from "@/components/Buttons/ScanBtn";
 
 const HomePage = () => {
   const toast = useSafeToast();
@@ -150,6 +151,7 @@ const QRCodeList = ({
                 className="rounded-md border-gray-700 text-xs font-medium text-gray-200 hover:border-indigo-500 hover:bg-gray-800 hover:text-indigo-400"
               />
               <div className="flex gap-2">
+                <ScanBtn qrCode={qrCode} isDisabled={isTemp} />
                 <EditBtn qrCode={qrCode} isDisabled={isTemp} />
                 <DeleteBtn qrCode={qrCode} isDisabled={isTemp} />
               </div>

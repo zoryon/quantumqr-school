@@ -34,7 +34,7 @@ export async function middleware(req: NextRequest) {
         // API routes always accessible to everyone
         const alwaysPublicApi = [
             api.qrcodes.find.toString(),
-            api.qrcodes.scan.toString(),
+            api.qrcodes.trackScan.toString(),
             api.policies.toString(),
         ];
 
