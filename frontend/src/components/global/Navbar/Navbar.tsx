@@ -13,12 +13,10 @@ const Navbar = () => {
     useEffect(() => {
         const fetchSessionUser = async () => {
             try {
-                const res: ResultType = await fetch(
-                    api.users.current.toString()
-                ).then(res => res.json());
+                const res: ResultType = await fetch(api.users.current.toString()).then(res => res.json());
 
                 if (!res.success) throw new Error("Failed to fetch user session");
-                
+
                 setUserData(res.body as PublicUser);
             } catch (error) {
                 console.error(error);
@@ -34,16 +32,16 @@ const Navbar = () => {
                     <div className="flex h-16 items-center justify-between">
                         <Logo />
 
-                        <div className="flex items-center gap-4">
-                            {userData && (
+                        {userData && (
+                            <div className="flex items-center gap-4">
                                 <AccountSettings userData={userData} />
-                            )}
 
-                            {/* Regular desktop button (hidden on mobile) */}
-                            <div className="hidden sm:flex bottom-6 right-6 z-[60]">
-                                {userData && (<CreateBtn />)}
+                                {/* Regular desktop button (hidden on mobile) */}
+                                <div className="hidden sm:flex bottom-6 right-6 z-[60]">
+                                    <CreateBtn />
+                                </div>
                             </div>
-                        </div>
+                        )}
                     </div>
                 </div>
             </header>

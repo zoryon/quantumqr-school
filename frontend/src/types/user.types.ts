@@ -13,6 +13,7 @@ export type User = {
     email: string,
     username: string,
     password: string,
+    isAdmin: number,
     createdAt: Date | null
 }
 
