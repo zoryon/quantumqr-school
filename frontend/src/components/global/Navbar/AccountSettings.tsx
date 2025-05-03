@@ -11,7 +11,7 @@ import LogoutBtn from "@/components/Buttons/LogoutBtn";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-const AccountSettings = ({ userData }: { userData: PublicUser }) => {
+const AccountSettings = ({ userData, isAdmin }: { userData: PublicUser, isAdmin: () => boolean}) => {
     const router = useRouter();
     const [isDialogOpen, setIsDialogOpen] = useState(false);
 
@@ -65,7 +65,7 @@ const AccountSettings = ({ userData }: { userData: PublicUser }) => {
                             Profile
                         </Button>
 
-                        {userData.isAdmin === 1 && (
+                        {isAdmin() && (
                             <Button
                                 variant="outline"
                                 className="w-full bg-gray-700/50 border-gray-600 hover:bg-gray-600/50"

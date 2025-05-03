@@ -6,7 +6,7 @@ import AccountSettings from "./AccountSettings";
 import { useUserData } from "@/hooks/use-user-data";
 
 const Navbar = () => {
-    const { userData } = useUserData(); 
+    const { userData, isAdmin } = useUserData(); 
 
     return (
         <>
@@ -17,7 +17,7 @@ const Navbar = () => {
 
                         {userData && (
                             <div className="flex items-center gap-4">
-                                <AccountSettings userData={userData} />
+                                <AccountSettings userData={userData} isAdmin={isAdmin} />
 
                                 {/* Regular desktop button (hidden on mobile) */}
                                 <div className="hidden sm:flex bottom-6 right-6 z-[60]">
