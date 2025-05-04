@@ -14,19 +14,25 @@ CREATE TABLE users (
     updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
-CREATE TABLE adminrequests (
-    userId INT PRIMARY KEY,
-    FOREIGN KEY (userId) REFERENCES users(id)
-)
+CREATE TABLE promotionrequests (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    userId INT UNIQUE NOT NULL,
+    requestReason TEXT,
+    requestedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    reviewedAt TIMESTAMP NULL,
+    rejectedAt TIMESTAMP NULL,
+    acceptedAt TIMESTAMP NULL,
+    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
+);
 
 CREATE TABLE cardtypes (
     id INT PRIMARY KEY AUTO_INCREMENT,
-    name VARCHAR(255) NOT NULL
+    name VARCHAR(255) NOT NULL -- ('Visa', 'Mastercard')
 );
 
 CREATE TABLE tiers (
     id INT PRIMARY KEY AUTO_INCREMENT,
-    name VARCHAR(255) NOT NULL,  -- ('Free', 'Basic', 'Pro', 'Enterprise')
+    name VARCHAR(255) NOT NULL, -- ('Free', 'Basic', 'Pro', 'Enterprise')
     price DECIMAL(10, 2) NOT NULL,
     description TEXT,
     maxQRCodes INT DEFAULT 10,
@@ -38,7 +44,7 @@ CREATE TABLE paymentmethods (
     id INT PRIMARY KEY AUTO_INCREMENT,
     cardTypeId INT NOT NULL,
     iban VARCHAR(255) UNIQUE NOT NULL,
-    FOREIGN KEY (cardTypeId) REFERENCES cardtypes(id)
+    FOREIGN KEY (cardTypeId) REFERENCES cardtypes(id) ON DELETE CASCADE
 );
 
 CREATE TABLE subscriptions (
@@ -49,9 +55,9 @@ CREATE TABLE subscriptions (
     createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     canceledAt TIMESTAMP NULL,
-    FOREIGN KEY (userId) REFERENCES users(id),
-    FOREIGN KEY (tierId) REFERENCES tiers(id),
-    FOREIGN KEY (paymentMethodId) REFERENCES paymentmethods(id)
+    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (tierId) REFERENCES tiers(id) ON DELETE CASCADE,
+    FOREIGN KEY (paymentMethodId) REFERENCES paymentmethods(id) ON DELETE CASCADE
 );
 
 CREATE TABLE qrcodes (
@@ -96,6 +102,7 @@ INSERT INTO cardtypes (name) VALUES ("Master Card");
 
 -- HELPERS
 -- UPDATE subscriptions SET tierId = 2 WHERE userId = 1;
+-- UPDATE users SET isAdmin = true WHERE id = 1;
 
 -- FUNCTIONS AND PROCEDURES
 -- Clean up unconfirmed users procedure

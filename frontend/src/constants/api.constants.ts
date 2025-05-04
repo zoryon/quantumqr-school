@@ -3,6 +3,7 @@ import { ApiDefinition } from "@/types";
 export const API_CONFIG = {
   users: {
     current: { method: "GET" },
+    requestPromotion: { method: "POST" },
   },
   qrcodes: {
     find: { method: "GET" },
