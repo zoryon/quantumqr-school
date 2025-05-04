@@ -41,6 +41,10 @@ Remember to save this data:
 Prisma has a good amount of tutorials, you can either check the ([Docs](https://www.prisma.io/docs/orm/prisma-client/setup-and-configuration/introduction)) or look a video on [YT](https://www.youtube.com/watch?v=QXxy8Uv1LnQ&t=1567s).  
 In the .env file at #3 (DATABASE_URL string), substitute $DATABASE_USER, $DATABASE_PASSWORD, $DATABASE_HOST, and $DATABASE_NAME with the data you've set up in the previous step
 
+Useful commands: </br>
+`$ npx prisma db pull` </br>
+`$ npx prisma generate`
+
 # Step 3.4 - Secrets
 You have already generated the secrets, now is the time to use them
 
