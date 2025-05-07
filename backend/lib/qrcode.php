@@ -279,12 +279,10 @@ function addLogoToSvgQrCode(string $svgContent, string $base64Logo, float $logoS
 }
 
 function isValidBase64Image(string $base64, int $maxSizeKb = 300): bool {
-    // Verifica se inizia correttamente
     if (!preg_match('/^data:image\/(png|jpeg|jpg|gif);base64,/', $base64)) {
         return false;
     }
 
-    // Calcola la dimensione in byte (base64 è circa 33% più grande)
     $data = explode(',', $base64)[1] ?? '';
     $sizeInBytes = (int)(strlen($data) * 0.75);
 
