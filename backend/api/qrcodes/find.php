@@ -5,14 +5,7 @@ require_once '../../lib/session.php';
 
 // Handle GET request
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
-    DB::getInstance()
-        ->setStatus(405)
-        ->setResponse([
-            'success' => false,
-            'message' => 'Method not allowed',
-            'body' => null
-        ])
-        ->send();
+    ApiResponse::methodNotAllowed()->send();
 }
 
 // Definizione del mapping dei tipi
@@ -33,13 +26,7 @@ try {
     // Validazione sessione
     $userId = getIdFromSessionToken($_COOKIE['session_token'] ?? '');
     if (!$userId) {
-        $db->setStatus(401)
-            ->setResponse([
-                'success' => false,
-                'message' => 'Unauthorized access',
-                'body' => null
-            ])
-            ->send();
+        ApiResponse::unauthorized()->send();
     }
 
     // Recupero e validazione parametri
@@ -47,36 +34,18 @@ try {
     $type = $_GET['type'] ?? null;
 
     if (!$qrCodeId || !filter_var($qrCodeId, FILTER_VALIDATE_INT)) {
-        $db->setStatus(400)
-            ->setResponse([
-                'success' => false,
-                'message' => 'Invalid QR code ID',
-                'body' => null
-            ])
-            ->send();
+        ApiResponse::clientError('Invalid QR code ID')->send();
     }
 
     if (!$type || !array_key_exists($type, TYPE_MAPPING)) {
-        $db->setStatus(400)
-            ->setResponse([
-                'success' => false,
-                'message' => 'Invalid or missing QR code type',
-                'body' => null
-            ])
-            ->send();
+        ApiResponse::clientError('Invalid or missing QR code type')->send();
     }
 
     // Recupero QR code base
     $baseQr = $db->selectOne("qrcodes", ["id" => $qrCodeId]);
 
     if (empty($baseQr)) {
-        $db->setStatus(404)
-            ->setResponse([
-                'success' => false,
-                'message' => 'QR Code not found',
-                'body' => null
-            ])
-            ->send();
+        ApiResponse::notFound('QR Code not found')->send();
     }
 
     $isOwner = (int)$userId === (int)$baseQr['userId'];
@@ -89,13 +58,7 @@ try {
     $specificData = $db->selectOne($specificTableName, ["qrCodeId" => $qrCodeId]);
 
     if (empty($specificData)) {
-        $db->setStatus(404)
-            ->setResponse([
-                'success' => false,
-                'message' => 'Detailed QR code data not found',
-                'body' => null
-            ])
-            ->send();
+        ApiResponse::notFound('Detailed QR code data not found')->send();
     }
 
     // Costruzione risposta
@@ -123,20 +86,7 @@ try {
         ]);
     }
 
-    $db->setStatus(200)
-        ->setResponse([
-            'success' => true,
-            'message' => 'QR code retrieved successfully',
-            'body' => $response
-        ])
-        ->send();
+    ApiResponse::success('QR code retrieved successfully', $response)->send();
 } catch (Exception $e) {
-    error_log('QR code fetch error: ' . $e->getMessage());
-    $db->setStatus(500)
-        ->setResponse([
-            'success' => false,
-            'message' => 'Internal server error',
-            'body' => null
-        ])
-        ->send();
+    ApiResponse::internalServerError($e->getMessage())->send();
 }

@@ -9,26 +9,14 @@ use Firebase\JWT\SignatureInvalidException;
 
 // Only allow GET requests
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
-    $db->setStatus(405)
-        ->setResponse([
-            'success' => false,
-            'message' => 'Method not allowed',
-            'body' => null
-        ])
-        ->send();
+    ApiResponse::methodNotAllowed()->send();
 }
 
 // Get token from query parameters
 $token = $_GET['token'] ?? null;
 
 if (!$token) {
-    $db->setStatus(401)
-        ->setResponse([
-            'success' => false,
-            'message' => 'Invalid token.',
-            'body' => null
-        ])
-        ->send();
+    ApiResponse::unauthorized('Invalid token')->send();
 }
 
 $db = DB::getInstance();
@@ -50,13 +38,7 @@ try {
 
     // Check if user was updated
     if (!$res) {
-        $db->setStatus(404)
-            ->setResponse([
-                'success' => false,
-                'message' => 'User not found',
-                'body' => null
-            ])
-            ->send();
+        ApiResponse::notFound('User not found')->send();
     }
 
     // Create free subscription for the user
@@ -66,45 +48,14 @@ try {
     ]);
 
     if (!$res) {
-        $db->setStatus(500)
-            ->setResponse([
-                'success' => false,
-                'message' => 'Failed to create subscription',
-                'body' => null
-            ])
-            ->send();
+        ApiResponse::internalServerError('Failed to create subscription')->send();
     }
 
-    // Success response
-    $db->setStatus(200)
-        ->setResponse([
-            'success' => true,
-            'message' => 'Email confirmed successfully',
-            'body' => null
-        ])
-        ->send();
+    ApiResponse::success('Email confirmed successfully', true)->send();
 } catch (ExpiredException $e) {
-    $db->setStatus(401)
-        ->setResponse([
-            'success' => false,
-            'message' => 'Token expired',
-            'body' => null
-        ])
-        ->send();
+    ApiResponse::unauthorized('Token expired')->send();
 } catch (SignatureInvalidException $e) {
-    $db->setStatus(401)
-        ->setResponse([
-            'success' => false,
-            'message' => 'Invalid token signature',
-            'body' => null
-        ])
-        ->send();
+    ApiResponse::unauthorized('Invalid token signature')->send();
 } catch (Exception $e) {
-    $db->setStatus(401)
-        ->setResponse([
-            'success' => false,
-            'message' => 'Invalid token',
-            'body' => null
-        ])
-        ->send();
+    ApiResponse::unauthorized('Invalid token')->send();
 }

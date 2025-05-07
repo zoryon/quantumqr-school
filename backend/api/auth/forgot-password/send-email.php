@@ -15,14 +15,7 @@ $SMTP_FROM = 'auth@quantumqr.it';
 
 // Handle POST request
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    DB::getInstance()
-        ->setStatus(405)
-        ->setResponse([
-            'success' => false,
-            'message' => 'Method not allowed',
-            'body' => null
-        ])
-        ->send();
+    ApiResponse::methodNotAllowed()->send();
 }
 
 $db = DB::getInstance();
@@ -31,13 +24,7 @@ try {
     // Check existing session
     $userId = getIdFromSessionToken($_COOKIE['session_token'] ?? '');
     if ($userId) {
-        $db->setStatus(404)
-            ->setResponse([
-                'success' => false,
-                'message' => 'You are already logged in.', 
-                'body' => null
-            ])
-            ->send();
+        ApiResponse::forbidden('You are already logged in')->send();
     }
 
     // Lettura del body della richiesta
@@ -50,13 +37,7 @@ try {
 
     // Validate inputs
     if (empty(trim($input['emailOrUsername']))) {
-        $db->setStatus(400)
-            ->setResponse([
-                'success' => false,
-                'message' => 'Either email or username is required',
-                'body' => null
-            ])
-            ->send();
+        ApiResponse::clientError('Either email or username is required')->send();
     }
 
     // Find the user by email or username
@@ -71,13 +52,7 @@ try {
     $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     if (empty($users)) {
-        $db->setStatus(404)
-            ->setResponse([
-                'success' => false,
-                'message' => 'User not found',
-                'body' => null
-            ])
-            ->send();
+        ApiResponse::notFound('User not found')->send();
     }
     $user = $users[0];
 
@@ -106,21 +81,7 @@ try {
     $mail->Body = "<p>Reset your password: <a href=\"$link\">Click here</a></p>";
     $mail->send();
     
-    // Successful response
-    $db->setStatus(200)
-        ->setResponse([
-            'success' => true,
-            'message' => 'Please check your email to reset your password.',
-            'body' => true
-        ])
-        ->send();
+    ApiResponse::success('Please check your email to reset your password', true)->send();
 } catch (Exception $e) {
-    error_log($e->getMessage());
-    $db->setStatus(500)
-        ->setResponse([
-            'success' => false,
-            'message' => $e->getMessage(),
-            'body' => null
-        ])
-        ->send();
+    ApiResponse::internalServerError($e->getMessage())->send();
 }

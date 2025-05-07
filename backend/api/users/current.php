@@ -8,14 +8,7 @@ $SESSION_SECRET = '171ba917ee3c87ccc7628e79e96e6804dd0c416b8e01b6a55051a0442bbc5
 
 // Handle GET request
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
-    DB::getInstance()
-        ->setStatus(405)
-        ->setResponse([
-            'success' => false,
-            'message' => 'Method not allowed',
-            'body' => null
-        ])
-        ->send();
+    ApiResponse::methodNotAllowed()->send();
 }
 
 try {
@@ -24,13 +17,7 @@ try {
     // Check existing session
     $userId = getIdFromSessionToken($_COOKIE['session_token']);
     if (!$userId) {
-        $db->setStatus(404)
-            ->setResponse([
-                'success' => false,
-                'message' => 'Not found', // Confusing unauthorized users 
-                'body' => null
-            ])
-            ->send();
+        ApiResponse::clientError('Not found')->send();
     }
 
     // Find confirmed user
@@ -45,29 +32,10 @@ try {
     $userData = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$userData || empty($userData)) {
-        $db->setStatus(404)
-            ->setResponse([
-                'success' => false,
-                'message' => 'User not found or subscription missing',
-                'body' => null
-            ])
-            ->send();
+        ApiResponse::notFound('User not found or subscription missing')->send();
     }
 
-    // Successful response
-    $db->setStatus(200)
-        ->setResponse([
-            'success' => true,
-            'message' => 'User found successfully',
-            'body' => $userData
-        ])
-        ->send();
+    ApiResponse::success('User found successfully', $newId)->send();
 } catch (Exception $e) {
-    $db->setStatus(500)
-        ->setResponse([
-            'success' => false,
-            'message' => $e->getMessage(),
-            'body' => null
-        ])
-        ->send();
+    ApiResponse::internalServerError($e->getMessage())->send();
 }

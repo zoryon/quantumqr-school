@@ -8,14 +8,7 @@ $SESSION_SECRET = '171ba917ee3c87ccc7628e79e96e6804dd0c416b8e01b6a55051a0442bbc5
 
 // Handle GET request
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    DB::getInstance()
-        ->setStatus(405)
-        ->setResponse([
-            'success' => false,
-            'message' => 'Method not allowed',
-            'body' => null
-        ])
-        ->send();
+    ApiResponse::methodNotAllowed()->send();
 }
 
 try {
@@ -24,13 +17,7 @@ try {
     // Check existing session
     $userId = getIdFromSessionToken($_COOKIE['session_token']);
     if (!$userId) {
-        $db->setStatus(404)
-            ->setResponse([
-                'success' => false,
-                'message' => 'Not found', // Confusing unauthorized users 
-                'body' => null
-            ])
-            ->send();
+        ApiResponse::notFound()->send();
     }
 
     // Find confirmed user
@@ -41,13 +28,7 @@ try {
     ]);
 
     if (!$user || empty($user)) {
-        $db->setStatus(404)
-            ->setResponse([
-                'success' => false,
-                'message' => 'User not found',
-                'body' => null
-            ])
-            ->send();
+        ApiResponse::notFound()->send();
     }
 
     $input = json_decode(file_get_contents('php://input'), true);
@@ -55,25 +36,13 @@ try {
     if (
         !isset($input["userId"]) || empty($input["userId"]) 
     ) {
-        $db->setStatus(400)
-            ->setResponse([
-                'success' => false,
-                'message' => 'Wrong data was passed',
-                'body' => null
-            ])
-            ->send();
+        ApiResponse::clientError('Wrong data was passed')->send();
     }
 
     $affectedRows = $db->update("promotionrequests", $input, ["userId" => $input["userId"]]);
 
     if ($affectedRows !== 1) {
-        $db->setStatus(400)
-            ->setResponse([
-                'success' => false,
-                'message' => 'Wrong data was passed',
-                'body' => null
-            ])
-            ->send();
+        ApiResponse::clientError('Wrong data was passed')->send();
     }
 
     if (!empty($input["acceptedAt"]) && $input["acceptedAt"] !== null) {
@@ -83,30 +52,11 @@ try {
         ]);
 
         if ($affectedRows !== 1) {
-            $db->setStatus(500)
-            ->setResponse([
-                'success' => false,
-                'message' => 'Interal server error',
-                'body' => null
-            ])
-            ->send();
+            ApiResponse::internalServerError()->send();
         }
     } 
 
-    // Successful response
-    $db->setStatus(200)
-        ->setResponse([
-            'success' => true,
-            'message' => 'Promotion successfully reviewed',
-            'body' => $affectedRows
-        ])
-        ->send();
+    ApiResponse::success('Promotion successfully reviewed', $affectedRows)->send();
 } catch (Exception $e) {
-    $db->setStatus(500)
-        ->setResponse([
-            'success' => false,
-            'message' => $e->getMessage(),
-            'body' => null
-        ])
-        ->send();
+    ApiResponse::internalServerError($e->getMessage())->send();
 }

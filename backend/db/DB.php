@@ -4,9 +4,6 @@ class DB
     // attributes
     private static $instance = null;
     private $pdo;
-    private $status = 200;
-    private $headers = [];
-    private $response = [];
 
     private $DB_CONFIG = [
         "host" => "localhost",
@@ -19,7 +16,6 @@ class DB
     private function __construct()
     {
         $this->connect();
-        $this->setDefaultHeaders();
     }
 
     // Singleton -> ensures only one instance of the class is created
@@ -45,56 +41,16 @@ class DB
             );
             $this->pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
         } catch (PDOException $e) {
-            $this->handleError("Database connection failed: " . $e->getMessage(), (int)$e->getCode());
+            throw new \RuntimeException("Database connection failed: " . $e->getMessage(), (int)$e->getCode(), $e);
         }
-    }
-
-    public function addCorsHeaders()
-    {
-        header("Access-Control-Allow-Origin: http://localhost:3000");
-        header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
-        header("Access-Control-Allow-Headers: Content-Type, Authorization");
-        header("Access-Control-Allow-Credentials: true");
-        return $this;
-    }
-
-    // by default, set Content-Type header to application/json
-    private function setDefaultHeaders(): void
-    {
-        $this->headers = [
-            "Content-Type" => "application/json",
-        ];
-    }
-
-    public function setStatus(int $status): self
-    {
-        $this->status = $status;
-        return $this;
-    }
-
-    public function addHeader(string $name, string $value): self
-    {
-        $this->headers[$name] = $value;
-        return $this;
-    }
-
-    public function setResponse(array $data): self
-    {
-        $this->response = $data;
-        return $this;
     }
 
     // General query executor
     public function execute($sql, $params = [])
     {
-        try {
-            $stmt = $this->pdo->prepare($sql);
-            $stmt->execute($params);
-            return $stmt;
-        } catch (PDOException $e) {
-            $this->handleError($e->getMessage(), (int)$e->getCode());
-            return false;
-        }
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute($params);
+        return $stmt;
     }
 
     // SELECT multiple rows
@@ -119,14 +75,14 @@ class DB
         }
 
         $stmt = $this->execute($sql, $params);
-        return $stmt ? $stmt->fetchAll($fetchMode) : false;
+        return $stmt ? $stmt->fetchAll($fetchMode) : null;
     }
 
     // SELECT single row
     public function selectOne($table, $conditions = [], $fetchMode = PDO::FETCH_ASSOC)
     {
         $result = $this->select($table, $conditions, $fetchMode);
-        return $result ? $result[0] : false;
+        return $result ? $result[0] : null;
     }
 
     // INSERT
@@ -137,7 +93,7 @@ class DB
         $sql = "INSERT INTO $table ($columns) VALUES ($placeholders)";
 
         $stmt = $this->execute($sql, array_values($data));
-        return $stmt ? $this->pdo->lastInsertId() : false;
+        return $stmt ? (int)$this->pdo->lastInsertId() : null;
     }
 
     // UPDATE
@@ -159,7 +115,7 @@ class DB
 
         $sql = "UPDATE $table SET " . implode(', ', $set) . " WHERE " . implode(' AND ', $where);
         $stmt = $this->execute($sql, $params);
-        return $stmt ? $stmt->rowCount() : false;
+        return $stmt ? (int)$stmt->rowCount() : null;
     }
 
     // DELETE
@@ -175,7 +131,7 @@ class DB
 
         $sql = "DELETE FROM $table WHERE " . implode(' AND ', $where);
         $stmt = $this->execute($sql, $params);
-        return $stmt ? $stmt->rowCount() : false;
+        return $stmt ? (int)$stmt->rowCount() : null;
     }
 
     // Count
@@ -195,28 +151,6 @@ class DB
 
         $stmt = $this->execute($sql, $params);
         $result = $stmt ? $stmt->fetchAll($fetchMode) : false;
-        return $result ? $result[0] : false;
-    }
-
-    // Send the final response
-    public function send(): void
-    {
-        $this->addCorsHeaders();
-        if (!headers_sent()) {
-            http_response_code($this->status);
-            foreach ($this->headers as $name => $value) {
-                header("$name: $value");
-            }
-        }
-
-        echo json_encode($this->response);
-        exit();
-    }
-
-    private function handleError(string $message, int $status = 500): void
-    {
-        $this->setStatus($status)
-            ->setResponse(["error" => $message])
-            ->send();
+        return $result ? $result[0] : null;
     }
 }

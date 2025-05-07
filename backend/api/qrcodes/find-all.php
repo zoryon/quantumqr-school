@@ -5,14 +5,7 @@ require_once '../../lib/session.php';
 
 // Handle GET request
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
-    DB::getInstance()
-        ->setStatus(405)
-        ->setResponse([
-            'success' => false,
-            'message' => 'Method not allowed',
-            'body' => null
-        ])
-        ->send();
+    ApiResponse::methodNotAllowed()->send();
 }
 
 // Define type mapping
@@ -27,13 +20,7 @@ try {
     // Session validation
     $userId = getIdFromSessionToken($_COOKIE['session_token'] ?? '');
     if (!$userId) {
-        $db->setStatus(401)
-            ->setResponse([
-                'success' => false,
-                'message' => 'Unauthorized access',
-                'body' => null
-            ])
-            ->send();
+        ApiResponse::unauthorized()->send();
     }
 
     // Build SQL query
@@ -121,20 +108,7 @@ try {
         ];
     }
 
-    $db->setStatus(200)
-        ->setResponse([
-            'success' => true,
-            'message' => 'QR codes retrieved successfully',
-            'body' => $transformed
-        ])
-        ->send();
+    ApiResponse::success('QR codes retrieved successfully', $transformed)->send();
 } catch (Exception $e) {
-    error_log($e->getMessage());
-    $db->setStatus(500)
-        ->setResponse([
-            'success' => false,
-            'message' => 'Internal server error',
-            'body' => null
-        ])
-        ->send();
+    ApiResponse::internalServerError($e->getMessage())->send();
 }

@@ -7,14 +7,7 @@ require_once '../../lib/qrcode.php';
 
 // Validate POST method
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    DB::getInstance()
-        ->setStatus(405)
-        ->setResponse([
-            'success' => false,
-            'message' => 'Method not allowed',
-            'body' => null
-        ])
-        ->send();
+    ApiResponse::methodNotAllowed()->send();
 }
 
 $db = DB::getInstance();
@@ -23,13 +16,7 @@ try {
     // Check existing session
     $userId = getIdFromSessionToken($_COOKIE['session_token']);
     if (!$userId) {
-        $db->setStatus(404)
-            ->setResponse([
-                'success' => false,
-                'message' => 'Not found', // Confusing unauthorized users 
-                'body' => null
-            ])
-            ->send();
+        ApiResponse::notFound()->send();
     }
 
     // Check if creation is allowed based on user's tier
@@ -38,36 +25,18 @@ try {
         "canceledAt" => null
     ]);
     if (!$subscription) {
-        $db->setStatus(403)
-            ->setResponse([
-                'success' => false,
-                'message' => 'You are not subscribed to any plan',
-                'body' => null
-            ])
-            ->send();
+        ApiResponse::forbidden('You are not subscribed to any plan')->send();
     }
     $userTier = $db->selectOne("tiers", ["id" => $subscription["tierId"]]);
 
     $qrCodesNum = $db->count("qrcodes", ["userId" => $userId]);
 
     if(!$userTier) {
-        $db->setStatus(404)
-            ->setResponse([
-                'success' => false,
-                'message' => 'Not found',
-                'body' => null
-            ])
-            ->send();
+        ApiResponse::notFound()->send();
     }
 
     if ($qrCodesNum["count"] >= $userTier["maxQRCodes"]) {
-        $db->setStatus(403)
-            ->setResponse([
-                'success' => false,
-                'message' => 'You have reached the maximum number of QR codes for your plan',
-                'body' => null
-            ])
-            ->send();
+        ApiResponse::forbidden('You have reached the maximum number of QR codes for your plan')->send();
     }
 
     // Parse input
@@ -75,24 +44,12 @@ try {
     
     // Validate required fields
     if (!isset($input['qrType']) || empty(trim($input['qrType']))) {
-        $db->setStatus(400)
-            ->setResponse([
-                'success' => false,
-                'message' => 'Invalid input',
-                'body' => null
-            ])
-            ->send();
+        ApiResponse::clientError('Invalid input')->send();
     }
 
     // Validate name length
     if (isset($input['name']) && strlen(trim($input['name'])) > 20) {
-        $db->setStatus(400)
-            ->setResponse([
-                'success' => false,
-                'message' => 'Name must be less than 20 characters',
-                'body' => null
-            ])
-            ->send();
+        ApiResponse::clientError('Name must be less than 20 characters')->send();
     }
 
     // Route based on QR type
@@ -105,29 +62,10 @@ try {
             $qrCode = createClassicQR($userId, $input);
             break;
         default:
-            $db->setStatus(400)
-                ->setResponse([
-                    'success' => false,
-                    'message' => 'Invalid QR code type',
-                    'body' => null
-                ])
-                ->send();
+            ApiResponse::clientError('Invalid QR code type')->send();
     }
 
-    $db->setStatus(201)
-        ->setResponse([
-            'success' => true,
-            'message' => 'QR code created successfully',
-            'body' => $qrCode
-        ])
-        ->send();
+    ApiResponse::created('QR code created successfully', $qrCode)->send();
 } catch (Exception $e) {
-    error_log($e->getMessage());
-    $db->setStatus(500)
-        ->setResponse([
-            'success' => false,
-            'message' => $e->getMessage(),
-            'body' => null
-        ])
-        ->send();
+    ApiResponse::internalServerError($e->getMessage())->send();
 }

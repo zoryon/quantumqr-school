@@ -8,14 +8,7 @@ $SESSION_SECRET = '171ba917ee3c87ccc7628e79e96e6804dd0c416b8e01b6a55051a0442bbc5
 
 // Handle POST request
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    DB::getInstance()
-        ->setStatus(405)
-        ->setResponse([
-            'success' => false,
-            'message' => 'Method not allowed',
-            'body' => null
-        ])
-        ->send();
+    ApiResponse::methodNotAllowed()->send();
 }
 
 try {
@@ -24,60 +17,30 @@ try {
     // Check existing session
     $userId = getIdFromSessionToken($_COOKIE['session_token']);
     if (!$userId) {
-        $db->setStatus(404)
-            ->setResponse([
-                'success' => false,
-                'message' => 'Not found', // Confusing unauthorized users 
-                'body' => null
-            ])
-            ->send();
+        ApiResponse::notFound()->send();
     }
 
     // Find confirmed user
     $user = $db->selectOne("users", ["id" => $userId]);
 
     if (!$user || empty($user)) {
-        $db->setStatus(404)
-            ->setResponse([
-                'success' => false,
-                'message' => 'User not found',
-                'body' => null
-            ])
-            ->send();
+        ApiResponse::notFound()->send();
     }
 
     if ($user["isAdmin"] === true) {
-        $db->setStatus(400)
-            ->setResponse([
-                'success' => false,
-                'message' => 'Already an admin',
-                'body' => null
-            ])
-            ->send();
+        ApiResponse::clientError('Already an admin')->send();
     }
 
     $input = json_decode(file_get_contents('php://input'), true);
 
     if (!$input["requestReason"] || empty($input["requestReason"])) {
-        $db->setStatus(400)
-            ->setResponse([
-                'success' => false,
-                'message' => 'Wrong inserted data',
-                'body' => null
-            ])
-            ->send();
+        ApiResponse::clientError('Wrong inserted data')->send();
     }
 
     $existing = $db->selectOne("promotionrequests", ["userId" => $userId]);
 
     if ($existing) {
-        $db->setStatus(409) // Conflict
-            ->setResponse([
-                'success' => false,
-                'message' => 'You have already sent a promotion request',
-                'body' => null
-            ])
-            ->send();
+        ApiResponse::conflict('You have already sent a promotion request')->send();
     }
     
     $newId = $db->insert("promotionrequests", [
@@ -86,30 +49,10 @@ try {
     ]);
 
     if (!$newId) {
-        $db->setStatus(500)
-            ->setResponse([
-                'success' => false,
-                'message' => 'Internal server error',
-                'body' => null
-            ])
-            ->send();
+        ApiResponse::internalServerError()->send();
     }
 
-    // Successful response
-    $db->setStatus(200)
-        ->setResponse([
-            'success' => true,
-            'message' => 'Request sent successfully',
-            'body' => $newId
-        ])
-        ->send();
+    ApiResponse::success('Request sent successfully', $newId)->send();
 } catch (Exception $e) {
-    error_log($e->getMessage());
-    $db->setStatus(500)
-        ->setResponse([
-            'success' => false,
-            'message' => $e->getMessage(),
-            'body' => null
-        ])
-        ->send();
+    ApiResponse::internalServerError($e->getMessage())->send();
 }

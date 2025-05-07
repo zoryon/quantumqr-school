@@ -9,26 +9,15 @@ $MAILER_SECRET = '0f98a88ce3ca074d1db8b8fe7d1f77e3c3153b5a667a5d105194511daced53
 $WEBSITE_URL = 'http://localhost:3000';
 $SMTP_FROM = 'auth@quantumqr.it';
 
-// Gestione della richiesta POST
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    // Gestione di altri metodi HTTP
-    DB::getInstance()
-    ->setStatus(405)
-    ->setResponse([
-        'success' => false,
-        'message' => 'Method not allowed',
-        'body' => null
-    ])
-    ->send();
+    ApiResponse::methodNotAllowed()->send();
 };
 
 $db = DB::getInstance();
 
 try {
-    // Lettura del body della richiesta
     $input = json_decode(file_get_contents('php://input'), true);
 
-    // Validazione parametri
     $requiredFields = [
         'email' => 'string',
         'username' => 'string',
@@ -38,58 +27,27 @@ try {
     ];
 
     foreach ($requiredFields as $field => $type) {
-        // Verifica se il campo è presente e del tipo corretto
         if (!isset($input[$field]) || gettype($input[$field]) !== $type) {
-            $db->setStatus(400)
-                ->setResponse([
-                    'success' => false,
-                    'message' => 'Invalid parameters.',
-                    'body' => null
-                ])
-                ->send();
+            ApiResponse::clientError('Invalid parameters')->send();
         }
     
         // Verifica ulteriore per i campi stringa: non devono essere vuoti dopo il trim
         if ($type === 'string' && empty(trim($input[$field]))) {
-            $db->setStatus(400)
-                ->setResponse([
-                    'success' => false,
-                    'message' => 'Invalid parameters.',
-                    'body' => null
-                ])
-                ->send();
+            ApiResponse::clientError('Invalid parameters')->send();
         }
     }
 
     // Validazioni aggiuntive
     if (strlen($input['username']) < 2) {
-        $db->setStatus(400)
-            ->setResponse([
-                'success' => false,
-                'message' => 'Username must be at least 2 characters long.',
-                'body' => null
-            ])
-            ->send();
+        ApiResponse::clientError('Username must be at least 2 characters long')->send();
     }
 
     if (strlen($input['password']) < 5) {
-        $db->setStatus(400)
-            ->setResponse([
-                'success' => false,
-                'message' => 'Password must be at least 5 characters long.',
-                'body' => null
-            ])
-            ->send();
+        ApiResponse::clientError('Password must be at least 5 characters long')->send();
     }
 
     if ($input['password'] !== $input['passwordConfirmation']) {
-        $db->setStatus(400)
-            ->setResponse([
-                'success' => false,
-                'message' => 'Passwords do not match.',
-                'body' => null
-            ])
-            ->send();
+        ApiResponse::clientError('Passwords do not match')->send();
     }
 
     // Controllo utente esistente
@@ -101,13 +59,7 @@ try {
     $existingUser = $existingUserArray[0] ?? null;
 
     if (!empty($existingUser)) {
-        $db->setStatus(409)
-            ->setResponse([
-                'success' => false,
-                'message' => 'User already exists. Please login instead.',
-                'body' => null
-            ])
-            ->send();
+        ApiResponse::conflict('User already exists. Please login instead.')->send();
     }
 
     // Hash password
@@ -147,21 +99,7 @@ try {
     $mail->Body = "<p>Confirm: <a href=\"$link\">Click here</a></p>";
     $mail->send();
 
-    // Risposta di successo
-    $db->setStatus(200)
-        ->setResponse([
-            'success' => true,
-            'message' => 'Registration successful. Please check your email to confirm your account.',
-            'body' => true
-        ])
-        ->send();
+    ApiResponse::success('Registration successful. Please check your email to confirm your account.', true)->send();
 } catch (Exception $e) {
-    error_log($e->getMessage());
-    $db->setStatus(500)
-        ->setResponse([
-            'success' => false,
-            'message' => $e->getMessage(),
-            'body' => null
-        ])
-        ->send();
+    ApiResponse::internalServerError($e->getMessage())->send();
 }

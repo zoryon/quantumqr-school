@@ -29,25 +29,13 @@ try {
     // Validate session
     $userId = getIdFromSessionToken($_COOKIE['session_token'] ?? '');
     if (!$userId) {
-        $db->setStatus(401)
-            ->setResponse([
-                'success' => false,
-                'message' => 'Unauthorized',
-                'body' => null
-            ])
-            ->send();
+        ApiResponse::unauthorized()->send();
     }
 
     // Get and validate input
     $input = json_decode(file_get_contents('php://input'), true);
     if (!$input || !isset($input['id'], $input['type'])) {
-        $db->setStatus(400)
-            ->setResponse([
-                'success' => false,
-                'message' => 'Invalid request data',
-                'body' => null
-            ])
-            ->send();
+        ApiResponse::clientError('Invalid request data')->send();
     }
 
     $qrId = (int)$input['id'];
@@ -55,13 +43,7 @@ try {
 
     // Validate type
     if (!array_key_exists($type, TYPE_MAPPING)) {
-        $db->setStatus(400)
-            ->setResponse([
-                'success' => false,
-                'message' => 'Invalid QR code type',
-                'body' => null
-            ])
-            ->send();
+        ApiResponse::clientError('Invalid QR code type')->send();
     }
 
     $typeConfig = TYPE_MAPPING[$type];
@@ -71,13 +53,7 @@ try {
     // Validate data
     $validationErrors = validateData($data, $typeConfig['validation']);
     if (!empty($validationErrors)) {
-        $db->setStatus(400)
-            ->setResponse([
-                'success' => false,
-                'message' => 'Validation failed',
-                'body' => $validationErrors
-            ])
-            ->send();
+        ApiResponse::clientError('Validation failed', $validationErrors)->send();
     }
 
     // Check for duplicate name (excluding current QR)
@@ -88,13 +64,7 @@ try {
     $existing = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     if (!empty($existing)) {
-        $db->setStatus(400)
-            ->setResponse([
-                'success' => false,
-                'message' => 'A QR Code with the same name already exists',
-                'body' => null
-            ])
-            ->send();
+        ApiResponse::clientError('A QR Code with the same name already exists')->send();
     }
 
     /// --- Database Update (Transaction) ---
@@ -133,7 +103,7 @@ try {
             $updateSpecificStmt = $db->execute($updateSpecificSql, $params);
 
             if (!$updateSpecificStmt) {
-                 throw new Exception("Failed to execute specific QR code update for type '{$type}', ID: $qrId");
+                throw new Exception("Failed to execute specific QR code update for type '{$type}', ID: $qrId");
             }
         } 
         
@@ -152,22 +122,9 @@ try {
     );
     $updatedQr = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    $db->setStatus(200)
-        ->setResponse([
-            'success' => true,
-            'message' => 'QR Code updated successfully',
-            'body' => $updatedQr ?? null
-        ])
-        ->send();
+    ApiResponse::success('QR Code updated successfully', $updatedQr ?? null)->send();
 } catch (Exception $e) {
-    error_log('Update error: ' . $e->getMessage());
-    $db->setStatus(500)
-        ->setResponse([
-            'success' => false,
-            'message' => 'Internal server error',
-            'body' => null
-        ])
-        ->send();
+    ApiResponse::internalServerError($e->getMessage())->send();
 }
 
 // Helper validation function (would be in /lib/validation.php)

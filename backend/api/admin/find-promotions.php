@@ -8,14 +8,7 @@ $SESSION_SECRET = '171ba917ee3c87ccc7628e79e96e6804dd0c416b8e01b6a55051a0442bbc5
 
 // Handle GET request
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
-    DB::getInstance()
-        ->setStatus(405)
-        ->setResponse([
-            'success' => false,
-            'message' => 'Method not allowed',
-            'body' => null
-        ])
-        ->send();
+    ApiResponse::methodNotAllowed()->send();
 }
 
 try {
@@ -24,13 +17,7 @@ try {
     // Check existing session
     $userId = getIdFromSessionToken($_COOKIE['session_token']);
     if (!$userId) {
-        $db->setStatus(404)
-            ->setResponse([
-                'success' => false,
-                'message' => 'Not found', // Confusing unauthorized users 
-                'body' => null
-            ])
-            ->send();
+        ApiResponse::notFound()->send();
     }
 
     // Find confirmed user
@@ -41,42 +28,17 @@ try {
     ]);
 
     if (!$user || empty($user)) {
-        $db->setStatus(404)
-            ->setResponse([
-                'success' => false,
-                'message' => 'User not found',
-                'body' => null
-            ])
-            ->send();
+        ApiResponse::notFound('User not found')->send();
     }
 
     $promotionRequests = $db->select("promotionrequests", [ "reviewedAt" => null ]);
     if ($promotionRequests == null) {
         $promotionRequests = [];
     } elseif ($promotionRequests === false) {
-        $db->setStatus(500)
-            ->setResponse([
-                'success' => false,
-                'message' => 'Internal server error',
-                'body' => null
-            ])
-            ->send();
+        ApiResponse::internalServerError()->send();
     }
 
-    // Successful response
-    $db->setStatus(200)
-        ->setResponse([
-            'success' => true,
-            'message' => 'Promotion requests found successfully',
-            'body' => $promotionRequests
-        ])
-        ->send();
+    ApiResponse::success('Promotion requests found successfully', $promotionRequests)->send();
 } catch (Exception $e) {
-    $db->setStatus(500)
-        ->setResponse([
-            'success' => false,
-            'message' => $e->getMessage(),
-            'body' => null
-        ])
-        ->send();
+    ApiResponse::internalServerError($e->getMessage())->send();
 }

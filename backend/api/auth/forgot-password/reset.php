@@ -9,14 +9,7 @@ $SESSION_SECRET = '171ba917ee3c87ccc7628e79e96e6804dd0c416b8e01b6a55051a0442bbc5
 
 // Handle POST request
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    DB::getInstance()
-        ->setStatus(405)
-        ->setResponse([
-            'success' => false,
-            'message' => 'Method not allowed',
-            'body' => null
-        ])
-        ->send();
+    ApiResponse::methodNotAllowed()->send();
 }
 
 $db = DB::getInstance();
@@ -25,13 +18,7 @@ try {
     // Check existing session
     $userId = getIdFromSessionToken($_COOKIE['session_token'] ?? '');
     if ($userId) {
-        $db->setStatus(404)
-            ->setResponse([
-                'success' => false,
-                'message' => 'You are already logged in.', 
-                'body' => null
-            ])
-            ->send();
+        ApiResponse::clientError('You are already logged inn')->send();
     }
 
     // Lettura del body della richiesta
@@ -47,44 +34,20 @@ try {
     // Validate reset token
     $userId = getIdFromResetToken($input['token']);
     if (!$userId) {
-        $db->setStatus(400)
-            ->setResponse([
-                'success' => false,
-                'message' => 'Invalid or expired token',
-                'body' => null
-            ])
-            ->send();
+        ApiResponse::clientError('Invalid or expired token')->send();
     }
 
     // Validate password
     if (empty($input['password']) || empty($input['passwordConfirmation'])) {
-        $db->setStatus(400)
-            ->setResponse([
-                'success' => false,
-                'message' => 'Password and confirmation are required',
-                'body' => null
-            ])
-            ->send();
+        ApiResponse::clientError('Password and confirmation are required')->send();
     }
 
     if (strlen($input['password']) < 5) {
-        $db->setStatus(400)
-            ->setResponse([
-                'success' => false,
-                'message' => 'Password must be at least 5 characters long',
-                'body' => null
-            ])
-            ->send();
+        ApiResponse::clientError('Password must be at least 5 characters long')->send();
     }
 
     if ($input['password'] !== $input['passwordConfirmation']) {
-        $db->setStatus(400)
-            ->setResponse([
-                'success' => false,
-                'message' => 'Passwords do not match',
-                'body' => null
-            ])
-            ->send();
+        ApiResponse::clientError('Passwords do not match')->send();
     }
 
     // Update the user's password in the database (ensure the email is confirmed)
@@ -98,30 +61,10 @@ try {
     );
 
     if ($updatedRowsNum === 0) {
-        $db->setStatus(404)
-            ->setResponse([
-                'success' => false,
-                'message' => 'User not found',
-                'body' => null
-            ])
-            ->send();
+        ApiResponse::notFound()->send();
     }
 
-    // Successful response
-    $db->setStatus(200)
-        ->setResponse([
-            'success' => true,
-            'message' => 'Password updated successfully.',
-            'body' => $updatedRowsNum
-        ])
-        ->send();
+    ApiResponse::success('Password updated successfully', $updatedRowsNum)->send();
 } catch (Exception $e) {
-    error_log($e->getMessage());
-    $db->setStatus(500)
-        ->setResponse([
-            'success' => false,
-            'message' => $e->getMessage(),
-            'body' => null
-        ])
-        ->send();
+    ApiResponse::internalServerError($e->getMessage())->send();
 }

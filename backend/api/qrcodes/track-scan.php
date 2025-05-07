@@ -5,14 +5,7 @@ require_once '../../db/DB.php';
 
 // Handle PUT request
 if ($_SERVER['REQUEST_METHOD'] !== 'PUT') {
-    DB::getInstance()
-        ->setStatus(405)
-        ->setResponse([
-            'success' => false,
-            'message' => 'Method not allowed',
-            'body' => null
-        ])
-        ->send();
+    ApiResponse::methodNotAllowed()->send();
 }
 
 $db = DB::getInstance();
@@ -22,24 +15,12 @@ try {
     $input = json_decode(file_get_contents('php://input'), true);
     
     if (!$input || !isset($input['id'])) {
-        $db->setStatus(400)
-            ->setResponse([
-                'success' => false,
-                'message' => 'Missing QR code ID',
-                'body' => null
-            ])
-            ->send();
+        ApiResponse::clientError('Missing QR code ID')->send();
     }
 
     $qrId = (int)$input['id'];
     if ($qrId <= 0) {
-        $db->setStatus(400)
-            ->setResponse([
-                'success' => false,
-                'message' => 'Invalid QR code ID',
-                'body' => null
-            ])
-            ->send();
+        ApiResponse::clientError('Invalid QR code ID')->send();
     }
 
     // --- Increment Scan Count Atomically ---
@@ -52,13 +33,7 @@ try {
         // If rowCount is 0, it means no record with that ID was found/updated
         // We should check if the record exists first, or infer from rowCount.
         // Inferring from rowCount is simpler here.
-        $db->setStatus(404) // Not Found
-            ->setResponse([
-                'success' => false,
-                'message' => 'QR code not found or update failed.',
-                'body' => null
-            ])
-            ->send();
+        ApiResponse::notFound('QR code not found or update failed')->send();
     }
 
     // --- Get Updated Scan Count ---
@@ -67,31 +42,13 @@ try {
     $updatedQrData = $db->selectOne("qrcodes", ["id" => $qrId]);
 
     if (!$updatedQrData) {
-        $db->setStatus(500)
-            ->setResponse([
-                'success' => false,
-                'message' => 'QR code not found after update.',
-                'body' => null
-            ])
-            ->send();
+        ApiResponse::internalServerError('QR code not found after update')->send();
     }
 
-    $db->setStatus(200)
-        ->setResponse([
-            'success' => true,
-            'message' => 'Scan count updated',
-            'body' => [
-                'scans' => (int)$updatedQrData['scans']
-            ]
-        ])
-        ->send();
+    ApiResponse::success('Scan count updated', [
+        'scans' => (int)$updatedQrData['scans']
+    ])->send();
 } catch (Exception $e) {
-    error_log('Scan count update error: ' . $e->getMessage());
-    $db->setStatus(500)
-        ->setResponse([
-            'success' => false,
-            'message' => 'Internal server error',
-            'body' => null
-        ])
-        ->send();
+    ApiResponse::internalServerError($e->getMessage())->send();
+
 }
