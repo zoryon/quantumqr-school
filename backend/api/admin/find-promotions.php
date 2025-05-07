@@ -34,21 +34,30 @@ try {
     }
 
     // Find confirmed user
-    $query = "SELECT u.*, t.name AS tier,
-            (SELECT COUNT(*) FROM qrcodes WHERE userId = u.id) AS qrCodesCount,
-            (SELECT COALESCE(SUM(scans), 0) FROM qrcodes WHERE userId = u.id) AS totalScans
-          FROM users u
-          JOIN subscriptions s ON u.id = s.userId
-          JOIN tiers t ON s.tierId = t.id
-          WHERE u.id = ?";
-    $stmt = $db->execute($query, [$userId]);
-    $userData = $stmt->fetch(PDO::FETCH_ASSOC);
+    $user = $db->selectOne("users", [
+        "id" => $userId, 
+        "isAdmin" => true,
+        "isEmailConfirmed" => true
+    ]);
 
-    if (!$userData || empty($userData)) {
+    if (!$user || empty($user)) {
         $db->setStatus(404)
             ->setResponse([
                 'success' => false,
-                'message' => 'User not found or subscription missing',
+                'message' => 'User not found',
+                'body' => null
+            ])
+            ->send();
+    }
+
+    $promotionRequests = $db->select("promotionrequests", [ "reviewedAt" => null ]);
+    if ($promotionRequests == null) {
+        $promotionRequests = [];
+    } elseif ($promotionRequests === false) {
+        $db->setStatus(500)
+            ->setResponse([
+                'success' => false,
+                'message' => 'Internal server error',
                 'body' => null
             ])
             ->send();
@@ -58,8 +67,8 @@ try {
     $db->setStatus(200)
         ->setResponse([
             'success' => true,
-            'message' => 'User found successfully',
-            'body' => $userData
+            'message' => 'Promotion requests found successfully',
+            'body' => $promotionRequests
         ])
         ->send();
 } catch (Exception $e) {

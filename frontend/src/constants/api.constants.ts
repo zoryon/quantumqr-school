@@ -29,5 +29,9 @@ export const API_CONFIG = {
   subscriptions: {
     tiers: { method: "GET" },
     change: { method: "POST" }
+  },
+  admin: {
+    findPromotions: { method: "GET" },
+    reviewPromotion: { method: "POST" }
   }
 } satisfies ApiDefinition;
