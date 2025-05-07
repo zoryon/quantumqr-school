@@ -47,7 +47,7 @@ export default function EditVCardPage() {
                 }).then((res) => res.json());
 
                 if (!res.success) throw new Error("QR code not found");
-                setQrCode(res.body);
+                setQrCode(res.data);
             } catch (err) {
                 console.error(err);
                 setNotFound(true);

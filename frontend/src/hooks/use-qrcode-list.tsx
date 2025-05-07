@@ -20,7 +20,7 @@ export function QrCodeListProvider({ children }: { children: React.ReactNode }) 
   const [qrCodes, setQrCodes] = useState<QRCode[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [result, setResult] = useState<ResultType>({ success: false, message: null, body: null });
+  const [result, setResult] = useState<ResultType>({ success: false, message: null, data: null });
 
   async function fetchQrCodes() {
     try {
@@ -34,7 +34,7 @@ export function QrCodeListProvider({ children }: { children: React.ReactNode }) 
 
       if (!res.success) throw new Error("Failed to fetch QR codes");
 
-      setQrCodes(res.body);
+      setQrCodes(res.data);
     } catch (err) {
       console.log(err);
       setError("Failed to load QR codes");

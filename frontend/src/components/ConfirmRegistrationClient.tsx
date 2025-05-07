@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Button } from "./ui/button";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/endpoint-builder";
+import { ResultType } from "@/types";
 
 const ConfirmRegistrationClient = ({
     token
@@ -20,14 +21,14 @@ const ConfirmRegistrationClient = ({
 
         async function confirmRegistration() {
             try {
-                const res = await fetch(api.auth.register.confirm.query({ token }), {
+                const res: ResultType = await fetch(api.auth.register.confirm.query({ token }), {
                     method: "GET",
                     headers: {
                         "Accept": "application/json",
                     },
-                });
+                }).then(res => res.json());
 
-                if (!res.ok) {
+                if (!res.success) {
                     throw new Error("Registration confirmation failed");
                 }
                 setResMessage("Registration confirmed, you will be redirected shortly...");

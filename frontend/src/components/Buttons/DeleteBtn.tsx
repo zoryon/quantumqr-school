@@ -35,13 +35,13 @@ const DeleteBtn = ({
             setResult({
                 success: false,
                 message: "Failed to delete QR Code.",
-                body: null
+                data: null
             });
         } else {
             setResult({
                 success: true,
                 message: "QR Code deleted successfully.",
-                body: null
+                data: null
             });
         }
         setIsPending(false);

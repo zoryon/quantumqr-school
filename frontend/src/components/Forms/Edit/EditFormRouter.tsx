@@ -41,23 +41,22 @@ const EditForm = ({
             router.push("/");
 
             // API call to update
-            const res = await fetch(api.qrcodes.update.toString(), {
+            const res: ResultType = await fetch(api.qrcodes.update.toString(), {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json"
                 },
                 body: JSON.stringify({ id, type, ...values })
-            });
+            }).then(res => res.json());
 
             // Handle successful update
-            const data: ResultType = await res.json();
             setResult({
-                success: data.success,
-                message: data.message,
-                body: data.body
+                success: res.success,
+                message: res.message,
+                data: res.data
             });
 
-            if (data.success) {
+            if (res.success) {
                 setIsPending(false);
             } else {
                 setQrCodes(previousQrCodes);
@@ -68,7 +67,7 @@ const EditForm = ({
             setResult({
                 success: error.success,
                 message: error.message,
-                body: null
+                data: null
             });
             setIsPending(false);
         }

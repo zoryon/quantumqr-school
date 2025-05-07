@@ -17,7 +17,7 @@ const UpgradePage = () => {
 
                 if (!res.success) throw new Error("Failed to fetch tiers data");
 
-                setTiers(res.body as Tier[]);
+                setTiers(res.data as Tier[]);
             } catch (error) {
                 console.error("Error fetching tiers: ", error);
             }

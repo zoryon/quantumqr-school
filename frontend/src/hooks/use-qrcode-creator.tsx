@@ -183,7 +183,7 @@ export function QrCreatorProvider({ children }: { children: React.ReactNode }) {
                 // Sync temporary QR Code object with the newly created
                 setQrCodes(prev => [
                     {
-                        ...res.body,
+                        ...res.data,
                         type: qrType as QRCodeTypes,
                     },
                     ...prev.filter(qr => qr.id !== tempId)
@@ -196,7 +196,7 @@ export function QrCreatorProvider({ children }: { children: React.ReactNode }) {
             setResult({ 
                 success: res.success, 
                 message: res.message,
-                body: res.body
+                data: res.data
             });
             setIsPending(false);
         } catch (error: any) {
@@ -206,7 +206,7 @@ export function QrCreatorProvider({ children }: { children: React.ReactNode }) {
             setResult({ 
                 success: error.success, 
                 message: error.message,
-                body: error.body
+                data: error.data
             });
             setIsPending(false);
         }

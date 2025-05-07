@@ -58,7 +58,7 @@ const RedirectPage = () => {
                 if (!res || !res.success) {
                     setNotFound(true);
                 } else {
-                    setQrCode(res.body);
+                    setQrCode(res.data);
                 }
             } catch (error) {
                 console.error("Failed to fetch QR code:", error);

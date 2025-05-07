@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 import { ResultType } from "@/types";
 
-const ResultMessage = ({ success, message}: Omit<ResultType, "body">) => {
+const ResultMessage = ({ success, message }: Omit<ResultType, "data">) => {
     return message && (
         <p className={cn(
             "text-xs",

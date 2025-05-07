@@ -35,7 +35,7 @@ try {
         ApiResponse::notFound('User not found or subscription missing')->send();
     }
 
-    ApiResponse::success('User found successfully', $newId)->send();
+    ApiResponse::success('User found successfully', $userData)->send();
 } catch (Exception $e) {
     ApiResponse::internalServerError($e->getMessage())->send();
 }

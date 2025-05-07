@@ -15,35 +15,34 @@ import { api } from "@/lib/endpoint-builder";
 
 const SendResetEmailForm = () => {
     const [isPending, setIsPending] = useState(false);
-    const [result, setResult] = useState<ResultType>({ success: false, message: null, body: null });
+    const [result, setResult] = useState<ResultType>({ success: false, message: null, data: null });
 
     async function onSubmit(values: z.infer<typeof sendResetEmailFormSchema>) {
         try {
             setIsPending(true);
-            const res = await fetch(api.auth.forgotPassword.sendEmail.toString(), {
+            const res: ResultType = await fetch(api.auth.forgotPassword.sendEmail.toString(), {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
                 },
                 body: JSON.stringify(values)
-            });
+            }).then(res => res.json());
 
-            const data = await res.json();
-            if (!res.ok || !data.success) {
+            if (!res.success) {
                 setIsPending(false);
             }
 
             setResult({
-                success: data.success,
-                message: data.message,
-                body: data.body
+                success: res.success,
+                message: res.message,
+                data: res.data
             });
         } catch (error: any) {
             console.error("Error while changing password: ", error.message);
             setResult({
                 success: error.success,
                 message: error.message,
-                body: null
+                data: null
             });
             setIsPending(false);
         }

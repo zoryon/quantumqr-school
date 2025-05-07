@@ -45,7 +45,7 @@ const VCardPage = () => {
                 const result: ResultType = await response.json();
 
                 if (result.success) {
-                    setQrCode(result.body);
+                    setQrCode(result.data);
                 } else {
                     setError("QR code not found");
                 }

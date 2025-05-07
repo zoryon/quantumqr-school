@@ -19,7 +19,7 @@ const ReviewPromotionsPage = () => {
                 console.error(res.message);
             }
 
-            setRequests(res.body as PromotionRequest[]);
+            setRequests(res.data as PromotionRequest[]);
         }
 
         fetchRequests();

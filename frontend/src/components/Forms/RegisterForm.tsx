@@ -24,7 +24,7 @@ import { api } from "@/lib/endpoint-builder";
 
 const RegisterForm = () => {
     const [isPending, setIsPending] = useState(false);
-    const [result, setResult] = useState<ResultType>({ success: false, message: null, body: null });
+    const [result, setResult] = useState<ResultType>({ success: false, message: null, data: null });
 
     async function onSubmit(values: z.infer<typeof registerFormSchema>) {
         try {
@@ -41,14 +41,14 @@ const RegisterForm = () => {
             setResult({
                 success: res.success,
                 message: res.message,
-                body: res.body,
+                data: res.data,
             });
         } catch (error: any) {
             console.error("Error during registration: ", error.message);
             setResult({
                 success: error.success,
                 message: error.message,
-                body: null,
+                data: null,
             });
         } finally {
             setIsPending(false);

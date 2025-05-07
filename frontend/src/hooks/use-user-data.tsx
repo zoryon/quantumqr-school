@@ -21,11 +21,11 @@ export function UserDataProvider({ children }: { children: React.ReactNode }) {
             setIsPending(true);
 
             const res: ResultType = await fetch(api.users.current.toString(), { method: "GET" }).then((res) => res.json());
-
             if (!res.success) throw new Error("Failed to fetch current logged-in user");
 
-            setUserData(res.body);
+            setUserData(res.data);
         } catch (err) {
+            console.log("coap")
             console.error(err);
         } finally {
             setIsPending(false);

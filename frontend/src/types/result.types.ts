@@ -8,5 +8,5 @@
 export type ResultType = {
     success: boolean; // Indicates whether the operation was successful (true) or failed (false)
     message: string | null; // An optional message, can be null if there's no message
-    body: any; // The main data returned, could be any type depending on the context of the operation
+    data: any; // The main data returned, could be any type depending on the context of the operation
 };
