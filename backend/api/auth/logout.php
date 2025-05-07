@@ -1,6 +1,7 @@
 <?php
 
 require_once '../../db/DB.php';
+require_once '../../db/ApiResponse.php';
 
 $SESSION_SECRET = '171ba917ee3c87ccc7628e79e96e6804dd0c416b8e01b6a55051a0442bbc5e85';
 

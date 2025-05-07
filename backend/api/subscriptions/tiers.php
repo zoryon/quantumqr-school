@@ -2,6 +2,7 @@
 
 require_once '../../vendor/autoload.php';
 require_once '../../db/DB.php';
+require_once '../../db/ApiResponse.php';
 
 // Handle GET request
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
