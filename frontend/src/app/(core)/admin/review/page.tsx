@@ -26,16 +26,20 @@ const ReviewPromotionsPage = () => {
     }, []);
 
     return (
-        <div>
-            {requests.length > 0 ? (
-                requests.map(req => {
-                    return (
+        <div className="min-h-screen bg-gray-900 p-8">
+            <h1 className="text-3xl font-bold text-gray-100 mb-8">Promotion Requests</h1>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {requests.length > 0 ? (
+                    requests.map(req => (
                         <PromotionRequestComponent key={req.userId} req={req} />
-                    );
-                })
-            ) : (
-                <div>No requests for now..</div>
-            )}
+                    ))
+                ) : (
+                    <div className="col-span-full text-center py-12">
+                        <p className="text-gray-400 text-lg">No pending requests</p>
+                    </div>
+                )}
+            </div>
         </div>
     );
 }
@@ -64,19 +68,35 @@ const PromotionRequestComponent = ({ req }: { req: PromotionRequest }) => {
     }
 
     return (
-        <div>
-            <h1>{req.userId}</h1>
+        <div className="bg-gray-800 rounded-xl p-6 shadow-xl transition-all hover:shadow-2xl hover:-translate-y-1">
+            <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-blue-400">User ID: #{req.userId}</h3>
+                <span className="text-sm text-gray-400">{requestedAt}</span>
+            </div>
 
-            <h2>Reason:</h2>
-            <p>{req.requestReason}</p>
+            <div className="mb-6">
+                <h4 className="text-sm font-medium text-gray-300 mb-2">Request Reason</h4>
+                <p className="text-gray-400 text-sm leading-relaxed max-h-32 overflow-y-auto">
+                    {req.requestReason || "No reason provided"}
+                </p>
+            </div>
 
-            <h4>Requested at:</h4>
-            <p> {requestedAt}</p>
-
-            <section>
-                <Button variant={"outline"} onClick={() => handleRequest("reject" as PromotionRequestReview)}>Reject</Button>
-                <Button variant={"outline"} onClick={() => handleRequest("accept" as PromotionRequestReview)}>Accept</Button>
-            </section>
+            <div className="flex gap-3">
+                <Button
+                    onClick={() => handleRequest("reject")}
+                    className="flex-1 bg-red-600/20 hover:bg-red-600/30 border border-red-600 text-red-500 hover:text-red-400"
+                >
+                    <i className="far fa-times-circle mr-2 text-[1.1rem]"></i>
+                    Reject
+                </Button>
+                <Button
+                    onClick={() => handleRequest("accept")}
+                    className="flex-1 bg-green-600/20 hover:bg-green-600/30 border border-green-600 text-green-500 hover:text-green-400"
+                >
+                    <i className="far fa-check-circle mr-2 text-[1.1rem]"></i>
+                    Accept
+                </Button>
+            </div>
         </div>
     )
 }

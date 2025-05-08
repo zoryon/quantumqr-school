@@ -34,9 +34,7 @@ try {
 
     $input = json_decode(file_get_contents('php://input'), true);
 
-    if (
-        !isset($input["userId"]) || empty($input["userId"]) 
-    ) {
+    if (!isset($input["userId"]) || empty($input["userId"])) {
         ApiResponse::clientError('Wrong data was passed')->send();
     }
 
