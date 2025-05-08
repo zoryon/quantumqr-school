@@ -8,3 +8,11 @@ export type PromotionRequest = {
 };
 
 export type PromotionRequestReview = "accept" | "reject";
+
+export type AdminActivity = {
+    url: string,
+    icon: string,
+    bg: string,
+    title: string,
+    paragraph: string
+}

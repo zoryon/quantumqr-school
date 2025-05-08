@@ -2,8 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/endpoint-builder";
-import { ResultType } from "@/types";
-import { PromotionRequest, PromotionRequestReview } from "@/types/admin.types";
+import { ResultType, PromotionRequest, PromotionRequestReview } from "@/types";
 import { useEffect, useState } from "react";
 
 const ReviewPromotionsPage = () => {
