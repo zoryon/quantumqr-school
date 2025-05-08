@@ -25,7 +25,7 @@ class ApiResponse
     }
 
     // Helper methods for common response types
-    public static function success(string $message, $data = null, int $statusCode = 200): self
+    public static function success(string $message, $data = true, int $statusCode = 200): self
     {
         return (new self())
             ->setStatus($statusCode)
