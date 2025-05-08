@@ -6,7 +6,7 @@ require_once '../../lib/session.php';
 
 $SESSION_SECRET = '171ba917ee3c87ccc7628e79e96e6804dd0c416b8e01b6a55051a0442bbc5e85';
 
-if ($SERVER['REQUEST_METHOD'] !== "GET") {
+if ($_SERVER['REQUEST_METHOD'] !== "GET") {
     ApiResponse::methodNotAllowed()->send();
 }
 
@@ -29,7 +29,7 @@ try {
         ApiResponse::notFound()->send();
     }
 
-    $users = $db->select('users');
+    $users = $db->select('users', ["isAdmin" => false]);
     if (!$users) {
         ApiResponse::internalServerError()->send();
     }

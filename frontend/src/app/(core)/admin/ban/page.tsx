@@ -63,9 +63,9 @@ const BanUsersPage = () => {
                                         <p className="text-sm text-gray-400 break-all">{user.email}</p>
                                     </div>
                                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                        user.tier === 'Premium' 
-                                            ? 'bg-amber-500/20 text-amber-400'
-                                            : 'bg-purple-500/20 text-purple-400'
+                                        user.tier !== 'Free' 
+                                            ? 'bg-purple-500/20 text-purple-400'
+                                            : 'bg-amber-500/20 text-amber-400'
                                     }`}>
                                         {user.tier}
                                     </span>
