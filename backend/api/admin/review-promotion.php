@@ -21,7 +21,7 @@ try {
         ApiResponse::notFound()->send();
     }
 
-    // Find confirmed user
+    // Find session user and verify it's an admin making the request
     $user = $db->selectOne("users", [
         "id" => $userId, 
         "role" => UserRole::ADMIN,
@@ -37,6 +37,8 @@ try {
     if (!isset($input["userId"]) || empty($input["userId"])) {
         ApiResponse::clientError('Wrong data was passed')->send();
     }
+
+    $input["reviewerAdminId"] = $userId;
 
     $affectedRows = $db->update("promotion_requests", $input, ["userId" => $input["userId"]]);
 
