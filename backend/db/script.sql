@@ -4,28 +4,39 @@ USE quantumqr;
 
 CREATE TABLE users (
     id INT PRIMARY KEY AUTO_INCREMENT,
+    role ENUM('user', 'admin') DEFAULT 'user',
     email VARCHAR(255) UNIQUE NOT NULL,
     username VARCHAR(255) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
     hasAllowedEmails BOOLEAN DEFAULT FALSE,
     isEmailConfirmed BOOLEAN DEFAULT FALSE,
-    isAdmin BOOLEAN DEFAULT FALSE,
     createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
-CREATE TABLE promotionrequests (
+CREATE TABLE banned_users (
+    userId INT PRIMARY KEY,
+    bannerAdminId INT,
+    endsAt TIMESTAMP,
+    startedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY(userId) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY(bannerAdminId) REFERENCES users(id) ON DELETE SET NULL
+);
+
+CREATE TABLE promotion_requests (
     id INT PRIMARY KEY AUTO_INCREMENT,
     userId INT UNIQUE NOT NULL,
     requestReason TEXT,
+    reviewerAdminId INT,
     requestedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     reviewedAt TIMESTAMP NULL,
     rejectedAt TIMESTAMP NULL,
     acceptedAt TIMESTAMP NULL,
-    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
+    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY(reviewerAdminId) REFERENCES users(id) ON DELETE SET NULL
 );
 
-CREATE TABLE cardtypes (
+CREATE TABLE card_types (
     id INT PRIMARY KEY AUTO_INCREMENT,
     name VARCHAR(255) NOT NULL -- ('Visa', 'Mastercard')
 );
@@ -40,11 +51,11 @@ CREATE TABLE tiers (
     updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
-CREATE TABLE paymentmethods (
+CREATE TABLE payment_methods (
     id INT PRIMARY KEY AUTO_INCREMENT,
     cardTypeId INT NOT NULL,
     iban VARCHAR(255) UNIQUE NOT NULL,
-    FOREIGN KEY (cardTypeId) REFERENCES cardtypes(id) ON DELETE CASCADE
+    FOREIGN KEY(cardTypeId) REFERENCES card_types(id) ON DELETE CASCADE
 );
 
 CREATE TABLE subscriptions (
@@ -55,12 +66,12 @@ CREATE TABLE subscriptions (
     createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     canceledAt TIMESTAMP NULL,
-    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE,
-    FOREIGN KEY (tierId) REFERENCES tiers(id) ON DELETE CASCADE,
-    FOREIGN KEY (paymentMethodId) REFERENCES paymentmethods(id) ON DELETE CASCADE
+    FOREIGN KEY(userId) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY(tierId) REFERENCES tiers(id) ON DELETE CASCADE,
+    FOREIGN KEY(paymentMethodId) REFERENCES payment_methods(id) ON DELETE CASCADE
 );
 
-CREATE TABLE qrcodes (
+CREATE TABLE qr_codes (
     id INT PRIMARY KEY AUTO_INCREMENT,
     name VARCHAR(255) NOT NULL,
     userId INT NOT NULL,
@@ -68,17 +79,17 @@ CREATE TABLE qrcodes (
     scans INT NOT NULL DEFAULT 0,
     createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
     updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY(userId) REFERENCES users(id) ON DELETE CASCADE,
     CONSTRAINT uniqueUserIdName UNIQUE (userId, name)
 );
 
-CREATE TABLE classicqrcodes (
+CREATE TABLE classic_qr_codes (
     qrCodeId INT PRIMARY KEY,
     targetUrl VARCHAR(255),
-    FOREIGN KEY (qrCodeId) REFERENCES qrcodes(id) ON DELETE CASCADE
+    FOREIGN KEY(qrCodeId) REFERENCES qr_codes(id) ON DELETE CASCADE
 );
 
-CREATE TABLE vcardqrcodes (
+CREATE TABLE vcard_qr_codes (
     qrCodeId INT PRIMARY KEY,
     firstName VARCHAR(255) NOT NULL,
     lastName VARCHAR(255) NOT NULL,
@@ -86,7 +97,7 @@ CREATE TABLE vcardqrcodes (
     email VARCHAR(255),
     websiteUrl VARCHAR(255),
     address VARCHAR(255),
-    FOREIGN KEY (qrCodeId) REFERENCES qrcodes(id) ON DELETE CASCADE
+    FOREIGN KEY(qrCodeId) REFERENCES qr_codes(id) ON DELETE CASCADE
 );
 
 -- Add default server variables
@@ -97,8 +108,8 @@ INSERT INTO tiers (name, price, description, maxQRCodes) VALUES ("Pro", 9.99, "P
 INSERT INTO tiers (name, price, description, maxQRCodes) VALUES ("Enterprise", 24.99, "Enterprise plan for organizations which use qr codes often.", 200);
 
 -- Cardtypes
-INSERT INTO cardtypes (name) VALUES ("Visa");
-INSERT INTO cardtypes (name) VALUES ("Master Card");
+INSERT INTO card_types (name) VALUES ("Visa");
+INSERT INTO card_types (name) VALUES ("Master Card");
 
 -- HELPERS
 -- UPDATE subscriptions SET tierId = 2 WHERE userId = 1;

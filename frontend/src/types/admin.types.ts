@@ -1,5 +1,6 @@
 export type PromotionRequest = {
     userId: number,
+    reviewerAdminId: number,
     requestReason: string, 
     requestedAt: Date,
     reviewedAt: Date,
