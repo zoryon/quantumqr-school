@@ -11,8 +11,8 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 
 // Define type mapping
 const TYPE_MAPPING = [
-    ['relation' => 'vcardqrcodes', 'type' => 'vCards', 'alias' => 'v'],
-    ['relation' => 'classicqrcodes', 'type' => 'classics', 'alias' => 'c']
+    ['relation' => 'vcard_qr_codes', 'type' => 'vCards', 'alias' => 'v'],
+    ['relation' => 'classic_qr_codes', 'type' => 'classics', 'alias' => 'c']
 ];
 
 $db = DB::getInstance();
@@ -42,7 +42,7 @@ try {
     }
 
     $sql = sprintf(
-        "SELECT %s FROM qrcodes q %s WHERE q.userId = ?",
+        "SELECT %s FROM qr_codes q %s WHERE q.userId = ?",
         implode(', ', $selectFields),
         implode(' ', $joins)
     );

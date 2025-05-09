@@ -10,10 +10,10 @@
  */
 export type User = {
     id: number,
+    role: "user" | "admin",
     email: string,
     username: string,
     password: string,
-    isAdmin: number,
     createdAt: Date | null
 }
 

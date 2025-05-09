@@ -106,3 +106,9 @@ class ApiResponse
         exit(); // Terminate script execution after sending
     }
 }
+
+enum UserRole: string {
+    case ADMIN = 'admin';
+    case USER = 'user';
+}
+?>

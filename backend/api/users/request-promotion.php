@@ -28,7 +28,7 @@ try {
         ApiResponse::notFound()->send();
     }
 
-    if ($user["isAdmin"] === true) {
+    if ($user["role"] === UserRole::ADMIN) {
         ApiResponse::clientError('Already an admin')->send();
     }
 
@@ -38,13 +38,13 @@ try {
         ApiResponse::clientError('Wrong inserted data')->send();
     }
 
-    $existing = $db->selectOne("promotionrequests", ["userId" => $userId]);
+    $existing = $db->selectOne("promotion_requests", ["userId" => $userId]);
 
     if ($existing) {
         ApiResponse::conflict('You have already sent a promotion request')->send();
     }
     
-    $newId = $db->insert("promotionrequests", [
+    $newId = $db->insert("promotion_requests", [
         "userId" => $userId,
         "requestReason" => $input["requestReason"],
     ]);

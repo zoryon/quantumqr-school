@@ -12,11 +12,11 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 // Definizione del mapping dei tipi
 const TYPE_MAPPING = [
     'vCards' => [
-        'table' => 'vcardqrcodes',
+        'table' => 'vcard_qr_codes',
         'fields' => ['firstName', 'lastName', 'phoneNumber', 'email', 'address', 'websiteUrl']
     ],
     'classics' => [
-        'table' => 'classicqrcodes',
+        'table' => 'classic_qr_codes',
         'fields' => ['targetUrl']
     ]
 ];
@@ -43,7 +43,7 @@ try {
     }
 
     // Recupero QR code base
-    $baseQr = $db->selectOne("qrcodes", ["id" => $qrCodeId]);
+    $baseQr = $db->selectOne("qr_codes", ["id" => $qrCodeId]);
 
     if (empty($baseQr)) {
         ApiResponse::notFound('QR Code not found')->send();

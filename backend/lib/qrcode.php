@@ -21,7 +21,7 @@ function createVCardQR(int $userId, array $input)
     }
 
     // Check for existing QR code name
-    $existing = $db->select("qrcodes", [
+    $existing = $db->select("qr_codes", [
         "userId" => $userId, 
         "name" => $input['name']
     ]);
@@ -40,7 +40,7 @@ function createVCardQR(int $userId, array $input)
             'userId' => $userId,
             'url' => '' // Placeholder, will be updated later
         ];
-        $qrId = $db->insert("qrcodes", $qrData); 
+        $qrId = $db->insert("qr_codes", $qrData); 
 
         if (!$qrId) {
             throw new Exception("Failed to insert base QR code record.");
@@ -56,7 +56,7 @@ function createVCardQR(int $userId, array $input)
             'address' => trim($input['address']),
             'websiteUrl' => trim($input['websiteUrl'])
         ];
-        $db->insert("vcardqrcodes", $vCardData);
+        $db->insert("vcard_qr_codes", $vCardData);
 
         // Instantiate the QrCode Generator class
         $qrCode = new Generator();
@@ -86,7 +86,7 @@ function createVCardQR(int $userId, array $input)
         }
 
         // 3. Update the base QR code record with the generated SVG URL/content
-        $updateResult = $db->update("qrcodes", ['url' => $qrCodeSvg], ['id' => $qrId]);
+        $updateResult = $db->update("qr_codes", ['url' => $qrCodeSvg], ['id' => $qrId]);
 
         if ($updateResult === false) { // update returns row count or false
             throw new Exception("Failed to update QR code record with generated SVG for ID: $qrId");
@@ -121,7 +121,7 @@ function createClassicQR(int $userId, array $input)
     }
 
     // --- Check for existing QR code name ---
-    $existing = $db->select("qrcodes", [
+    $existing = $db->select("qr_codes", [
         "userId" => $userId,
         "name" => $input['name']
     ]);
@@ -140,7 +140,7 @@ function createClassicQR(int $userId, array $input)
             'userId' => $userId,
             'url' => '' // Placeholder
         ];
-        $qrId = $db->insert("qrcodes", $qrData);
+        $qrId = $db->insert("qr_codes", $qrData);
 
         if (!$qrId) {
             throw new Exception("Failed to insert base QR code record.");
@@ -151,7 +151,7 @@ function createClassicQR(int $userId, array $input)
             'qrCodeId' => $qrId,
             'targetUrl' => trim($input['targetUrl'])
         ];
-        $db->insert("classicqrcodes", $classicData);
+        $db->insert("classic_qr_codes", $classicData);
 
         // --- Generate QR Code SVG ---
         // Generate QR URL
@@ -182,7 +182,7 @@ function createClassicQR(int $userId, array $input)
         }
 
         // 3. Update the base QR code record with the generated SVG
-        $updateResult = $db->update("qrcodes", ['url' => $qrCodeSvg], ['id' => $qrId]);
+        $updateResult = $db->update("qr_codes", ['url' => $qrCodeSvg], ['id' => $qrId]);
 
         if ($updateResult === false) {
             throw new Exception("Failed to update QR code record with generated SVG for ID: $qrId");
@@ -202,9 +202,9 @@ function getQRCodeDetails(int $qrId)
     $db = DB::getInstance();
 
     $sql = "SELECT q.*, v.*, c.*
-        FROM qrcodes AS q
-        LEFT JOIN vcardqrcodes AS v ON q.id = v.qrCodeId
-        LEFT JOIN classicqrcodes AS c ON q.id = c.qrCodeId
+        FROM qr_codes AS q
+        LEFT JOIN vcard_qr_codes AS v ON q.id = v.qrCodeId
+        LEFT JOIN classic_qr_codes AS c ON q.id = c.qrCodeId
         WHERE q.id = ?";
 
     try {

@@ -19,10 +19,9 @@ const ScanBtn = ({ qrCode, isDisabled }: { qrCode: QRCode; isDisabled?: boolean 
     }
 
     return (
-        <Link href={redirect()}>
+        <Link target="_blank" href={redirect()}>
             <Button
                 disabled={isDisabled}
-                onClick={() => redirect()}
                 variant="ghost"
                 className="h-8 w-8 rounded-md text-indigo-400/80 hover:bg-indigo-400/10 hover:text-indigo-400"
             >

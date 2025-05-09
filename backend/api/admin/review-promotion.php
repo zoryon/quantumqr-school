@@ -24,7 +24,7 @@ try {
     // Find confirmed user
     $user = $db->selectOne("users", [
         "id" => $userId, 
-        "isAdmin" => true,
+        "role" => UserRole::ADMIN,
         "isEmailConfirmed" => true
     ]);
 
@@ -38,14 +38,14 @@ try {
         ApiResponse::clientError('Wrong data was passed')->send();
     }
 
-    $affectedRows = $db->update("promotionrequests", $input, ["userId" => $input["userId"]]);
+    $affectedRows = $db->update("promotion_requests", $input, ["userId" => $input["userId"]]);
 
     if ($affectedRows !== 1) {
         ApiResponse::clientError('Wrong data was passed')->send();
     }
 
     if (!empty($input["acceptedAt"]) && $input["acceptedAt"] !== null) {
-        $affectedRows = $db->update("users", ["isAdmin" => true], [
+        $affectedRows = $db->update("users", ["role" => UserRole::ADMIN], [
             "id" => $input["userId"],
             "isEmailConfirmed" => true
         ]);

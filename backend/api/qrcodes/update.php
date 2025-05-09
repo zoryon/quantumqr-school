@@ -8,7 +8,7 @@ require_once '../../lib/session.php';
 // Define type mapping with validation rules
 const TYPE_MAPPING = [
     'vCards' => [
-        'table' => 'vcardqrcodes',
+        'table' => 'vcard_qr_codes',
         'fields' => ['firstName', 'lastName', 'phoneNumber', 'email', 'address', 'websiteUrl'],
         'validation' => [
             'firstName' => 'required|string|max:255',
@@ -16,7 +16,7 @@ const TYPE_MAPPING = [
         ]
     ],
     'classics' => [
-        'table' => 'classicqrcodes',
+        'table' => 'classic_qr_codes',
         'fields' => ['targetUrl'],
         'validation' => [
             'targetUrl' => 'required|url|max:255'
@@ -59,7 +59,7 @@ try {
 
     // Check for duplicate name (excluding current QR)
     $stmt = $db->execute(
-        "SELECT id FROM qrcodes WHERE userId = ? AND name = ? AND id != ?",
+        "SELECT id FROM qr_codes WHERE userId = ? AND name = ? AND id != ?",
         [$userId, $data['name'], $qrId]
     );
     $existing = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -73,7 +73,7 @@ try {
 
     try {
         // 1. Update main qrcodes table (only name and updatedAt for now)
-        $updateBaseSql = "UPDATE qrcodes SET name = ?, updatedAt = NOW() WHERE id = ? AND userId = ?";
+        $updateBaseSql = "UPDATE qr_codes SET name = ?, updatedAt = NOW() WHERE id = ? AND userId = ?";
         $updateBaseStmt = $db->execute($updateBaseSql, [trim($input['name']), $qrId, $userId]);
 
         // Check if the base update failed unexpectedly (e.g., DB error)
@@ -116,7 +116,7 @@ try {
 
     // Get updated QR code
     $stmt = $db->execute(
-        "SELECT q.*, t.* FROM qrcodes q
+        "SELECT q.*, t.* FROM qr_codes q
          LEFT JOIN {$typeConfig['table']} t ON q.id = t.qrCodeId
          WHERE q.id = ?",
         [$qrId]

@@ -26,7 +26,7 @@ try {
 
     // --- Increment Scan Count Atomically ---
     // Use execute for raw SQL UPDATE with atomic increment
-    $updateSql = "UPDATE qrcodes SET scans = scans + 1 WHERE id = ?";
+    $updateSql = "UPDATE qr_codes SET scans = scans + 1 WHERE id = ?";
     $stmt = $db->execute($updateSql, [$qrId]);
 
     // Check if the execute call succeeded and if any row was actually updated
@@ -40,7 +40,7 @@ try {
     // --- Get Updated Scan Count ---
     // Fetch the updated record to get the new scan count
     // selectOne returns the row array or false
-    $updatedQrData = $db->selectOne("qrcodes", ["id" => $qrId]);
+    $updatedQrData = $db->selectOne("qr_codes", ["id" => $qrId]);
 
     if (!$updatedQrData) {
         ApiResponse::internalServerError('QR code not found after update')->send();

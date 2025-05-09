@@ -79,7 +79,15 @@ try {
     $mail->setFrom($SMTP_FROM);
     $mail->addAddress($user['email']);
     $mail->Subject = 'Reset Password Request';
-    $mail->Body = "<p>Reset your password: <a href=\"$link\">Click here</a></p>";
+    $mail->isHTML(true);
+    $htmlBody = "
+        <html>
+            <body>
+                <p>Reset your password: <a href=\"$link\">Click here</a></p>
+            </body>
+        </html>
+    ";
+    $mail->Body = $htmlBody;
     $mail->send();
     
     ApiResponse::success('Please check your email to reset your password', true)->send();

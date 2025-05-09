@@ -1,12 +1,10 @@
 "use client";
 
-import { useUserData } from "@/hooks/use-user-data";
 import { api } from "@/lib/endpoint-builder";
 import { PublicUser, ResultType } from "@/types";
 import { useEffect, useState } from "react";
 
 const BanUsersPage = () => {
-    const { userData } = useUserData();
     const [userList, setUserList] = useState<PublicUser[]>([]);
 
     useEffect(() => {

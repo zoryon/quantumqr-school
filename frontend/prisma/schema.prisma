@@ -7,65 +7,22 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model classicqrcodes {
-  qrCodeId  Int     @id
-  targetUrl String? @db.VarChar(255)
-  qrcodes   qrcodes @relation(fields: [qrCodeId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "classicqrcodes_ibfk_1")
-}
-
-model qrcodes {
-  id             Int             @id @default(autoincrement())
-  name           String          @db.VarChar(255)
-  userId         Int
-  url            String          @db.Text
-  scans          Int             @default(0)
-  createdAt      DateTime?       @default(now()) @db.DateTime(0)
-  updatedAt      DateTime        @default(now()) @db.Timestamp(0)
-  classicqrcodes classicqrcodes?
-  users          users           @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "qrcodes_ibfk_1")
-  vcardqrcodes   vcardqrcodes?
-
-  @@unique([userId, name], map: "uniqueUserIdName")
-}
-
 model users {
-  id               Int             @id @default(autoincrement())
-  email            String          @unique(map: "email") @db.VarChar(255)
-  username         String          @unique(map: "username") @db.VarChar(255)
-  password         String          @db.VarChar(255)
-  hasAllowedEmails Boolean?        @default(false)
-  isEmailConfirmed Boolean?        @default(false)
-  createdAt        DateTime        @default(now()) @db.Timestamp(0)
-  updatedAt        DateTime        @default(now()) @db.Timestamp(0)
-  qrcodes          qrcodes[]
-  subscriptions    subscriptions[]
-}
-
-model vcardqrcodes {
-  qrCodeId    Int     @id
-  firstName   String  @db.VarChar(255)
-  lastName    String  @db.VarChar(255)
-  phoneNumber String? @db.VarChar(255)
-  email       String? @db.VarChar(255)
-  websiteUrl  String? @db.VarChar(255)
-  address     String? @db.VarChar(255)
-  qrcodes     qrcodes @relation(fields: [qrCodeId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "vcardqrcodes_ibfk_1")
-}
-
-model cardtypes {
-  id             Int              @id @default(autoincrement())
-  name           String           @db.VarChar(255)
-  paymentmethods paymentmethods[]
-}
-
-model paymentmethods {
-  id            Int             @id @default(autoincrement())
-  cardTypeId    Int
-  iban          String          @unique(map: "iban") @db.VarChar(255)
-  cardtypes     cardtypes       @relation(fields: [cardTypeId], references: [id], onUpdate: Restrict, map: "paymentmethods_ibfk_1")
-  subscriptions subscriptions[]
-
-  @@index([cardTypeId], map: "cardTypeId")
+  id                                                           Int                  @id @default(autoincrement())
+  role                                                         users_role?          @default(user)
+  email                                                        String               @unique(map: "email") @db.VarChar(255)
+  username                                                     String               @unique(map: "username") @db.VarChar(255)
+  password                                                     String               @db.VarChar(255)
+  hasAllowedEmails                                             Boolean?             @default(false)
+  isEmailConfirmed                                             Boolean?             @default(false)
+  createdAt                                                    DateTime             @default(now()) @db.Timestamp(0)
+  updatedAt                                                    DateTime             @default(now()) @db.Timestamp(0)
+  banned_users_banned_users_userIdTousers                      banned_users?        @relation("banned_users_userIdTousers")
+  banned_users_banned_users_bannerAdminIdTousers               banned_users[]       @relation("banned_users_bannerAdminIdTousers")
+  promotion_requests_promotion_requests_userIdTousers          promotion_requests?  @relation("promotion_requests_userIdTousers")
+  promotion_requests_promotion_requests_reviewerAdminIdTousers promotion_requests[] @relation("promotion_requests_reviewerAdminIdTousers")
+  qr_codes                                                     qr_codes[]
+  subscriptions                                                subscriptions[]
 }
 
 model tiers {
@@ -80,18 +37,97 @@ model tiers {
 }
 
 model subscriptions {
-  id              Int             @id @default(autoincrement())
+  id              Int              @id @default(autoincrement())
   userId          Int
   tierId          Int
   paymentMethodId Int?
-  createdAt       DateTime        @default(now()) @db.Timestamp(0)
-  updatedAt       DateTime        @default(now()) @db.Timestamp(0)
-  canceledAt      DateTime?       @db.Timestamp(0)
-  users           users           @relation(fields: [userId], references: [id], onUpdate: Restrict, map: "subscriptions_ibfk_1")
-  tiers           tiers           @relation(fields: [tierId], references: [id], onUpdate: Restrict, map: "subscriptions_ibfk_2")
-  paymentmethods  paymentmethods? @relation(fields: [paymentMethodId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "subscriptions_ibfk_3")
+  createdAt       DateTime         @default(now()) @db.Timestamp(0)
+  updatedAt       DateTime         @default(now()) @db.Timestamp(0)
+  canceledAt      DateTime?        @db.Timestamp(0)
+  users           users            @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "subscriptions_ibfk_1")
+  tiers           tiers            @relation(fields: [tierId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "subscriptions_ibfk_2")
+  paymentmethods  payment_methods? @relation(fields: [paymentMethodId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "subscriptions_ibfk_3")
 
   @@index([paymentMethodId], map: "paymentMethodId")
   @@index([tierId], map: "tierId")
   @@index([userId], map: "userId")
+}
+
+model banned_users {
+  userId                                  Int      @id
+  bannerAdminId                           Int?
+  endsAt                                  DateTime @default(now()) @db.Timestamp(0)
+  startedAt                               DateTime @default(now()) @db.Timestamp(0)
+  users_banned_users_userIdTousers        users    @relation("banned_users_userIdTousers", fields: [userId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "banned_users_ibfk_1")
+  users_banned_users_bannerAdminIdTousers users?   @relation("banned_users_bannerAdminIdTousers", fields: [bannerAdminId], references: [id], onUpdate: Restrict, map: "banned_users_ibfk_2")
+
+  @@index([bannerAdminId], map: "bannerAdminId")
+}
+
+model card_types {
+  id              Int               @id @default(autoincrement())
+  name            String            @db.VarChar(255)
+  payment_methods payment_methods[]
+}
+
+model classic_qr_codes {
+  qrCodeId  Int      @id
+  targetUrl String?  @db.VarChar(255)
+  qr_codes  qr_codes @relation(fields: [qrCodeId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "classic_qr_codes_ibfk_1")
+}
+
+model payment_methods {
+  id            Int             @id @default(autoincrement())
+  cardTypeId    Int
+  iban          String          @unique(map: "iban") @db.VarChar(255)
+  card_types    card_types      @relation(fields: [cardTypeId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "payment_methods_ibfk_1")
+  subscriptions subscriptions[]
+
+  @@index([cardTypeId], map: "cardTypeId")
+}
+
+model promotion_requests {
+  id                                              Int       @id @default(autoincrement())
+  userId                                          Int       @unique(map: "userId")
+  requestReason                                   String?   @db.Text
+  reviewerAdminId                                 Int?
+  requestedAt                                     DateTime  @default(now()) @db.Timestamp(0)
+  reviewedAt                                      DateTime? @db.Timestamp(0)
+  rejectedAt                                      DateTime? @db.Timestamp(0)
+  acceptedAt                                      DateTime? @db.Timestamp(0)
+  users_promotion_requests_userIdTousers          users     @relation("promotion_requests_userIdTousers", fields: [userId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "promotion_requests_ibfk_1")
+  users_promotion_requests_reviewerAdminIdTousers users?    @relation("promotion_requests_reviewerAdminIdTousers", fields: [reviewerAdminId], references: [id], onUpdate: Restrict, map: "promotion_requests_ibfk_2")
+
+  @@index([reviewerAdminId], map: "reviewerAdminId")
+}
+
+model qr_codes {
+  id               Int               @id @default(autoincrement())
+  name             String            @db.VarChar(255)
+  userId           Int
+  url              String            @db.Text
+  scans            Int               @default(0)
+  createdAt        DateTime?         @default(now()) @db.DateTime(0)
+  updatedAt        DateTime          @default(now()) @db.Timestamp(0)
+  classic_qr_codes classic_qr_codes?
+  users            users             @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "qr_codes_ibfk_1")
+  vcard_qr_codes   vcard_qr_codes?
+
+  @@unique([userId, name], map: "uniqueUserIdName")
+}
+
+model vcard_qr_codes {
+  qrCodeId    Int      @id
+  firstName   String   @db.VarChar(255)
+  lastName    String   @db.VarChar(255)
+  phoneNumber String?  @db.VarChar(255)
+  email       String?  @db.VarChar(255)
+  websiteUrl  String?  @db.VarChar(255)
+  address     String?  @db.VarChar(255)
+  qr_codes    qr_codes @relation(fields: [qrCodeId], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "vcard_qr_codes_ibfk_1")
+}
+
+enum users_role {
+  user
+  admin
 }

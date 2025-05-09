@@ -24,7 +24,7 @@ try {
     // Find confirmed user
     $user = $db->selectOne("users", [
         "id" => $userId, 
-        "isAdmin" => true,
+        "role" => UserRole::ADMIN,
         "isEmailConfirmed" => true
     ]);
 
@@ -32,7 +32,7 @@ try {
         ApiResponse::notFound('User not found')->send();
     }
 
-    $promotionRequests = $db->select("promotionrequests", [ "reviewedAt" => null ]);
+    $promotionRequests = $db->select("promotion_requests", [ "reviewedAt" => null ]);
     if ($promotionRequests == null) {
         $promotionRequests = [];
     } elseif ($promotionRequests === false) {

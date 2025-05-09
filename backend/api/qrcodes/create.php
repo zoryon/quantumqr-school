@@ -30,7 +30,7 @@ try {
     }
     $userTier = $db->selectOne("tiers", ["id" => $subscription["tierId"]]);
 
-    $qrCodesNum = $db->count("qrcodes", ["userId" => $userId]);
+    $qrCodesNum = $db->count("qr_codes", ["userId" => $userId]);
 
     if(!$userTier) {
         ApiResponse::notFound()->send();

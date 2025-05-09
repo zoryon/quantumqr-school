@@ -4,7 +4,7 @@ import { cardDetailsFormSchema, CardDetailsFormValues, classicDetailsFormSchema,
 import { QRCodeTypes, DesignOptions, QRCode, ResultType } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
-import { useForm, UseFormReturn } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { useQrCodeList } from "./use-qrcode-list";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/endpoint-builder";

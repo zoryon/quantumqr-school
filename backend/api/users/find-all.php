@@ -23,13 +23,13 @@ try {
     $currentUser = $db->selectOne("users", [
         "id" => $userId, 
         "isEmailConfirmed" => true, 
-        "isAdmin" => true
+        "role" => UserRole::ADMIN
     ]);
     if (!$currentUser || empty($currentUser)) {
         ApiResponse::notFound()->send();
     }
 
-    $users = $db->select('users', ["isAdmin" => false]);
+    $users = $db->select('users', ["role" => UserRole::USER]);
     if (!$users) {
         ApiResponse::internalServerError()->send();
     }

@@ -1,5 +1,5 @@
 import { QR_CODES_TYPES_ARRAY } from "@/constants";
-import { classicqrcodes, PrismaClient, qrcodes, vcardqrcodes } from "@prisma/client";
+import { PrismaClient, qr_codes, classic_qr_codes, vcard_qr_codes } from "@prisma/client";
 import { z } from "zod";
 
 // Define a union type `QRCodeTypes` that is derived from the elements of `QR_CODES_TYPES_ARRAY`.
@@ -10,21 +10,21 @@ export type QRCodeTypes = typeof QR_CODES_TYPES_ARRAY[number];
  * Base structure for a QR code, including the model's fields and a `type` to classify the QR code.
  * The `type` can either be "vCards" or "classics" based on the QR code category.
  */
-export type BaseQrCode = qrcodes & {
+export type BaseQrCode = qr_codes & {
     type: QRCodeTypes;
 };
 
 /**
- * A type for Classic QR codes that extends the Prisma `classicqrcodes` model and assigns it the type "classics".
+ * A type for Classic QR codes that extends the Prisma `classic_qr_codes` model and assigns it the type "classics".
  */
-export type ClassicQRCode = classicqrcodes & {
+export type ClassicQRCode = classic_qr_codes & {
     type: "classics";
 }
 
 /**
- * A type for vCard QR codes that extends the Prisma `vcardqrcodes` model and assigns it the type "vCards".
+ * A type for vCard QR codes that extends the Prisma `vcard_qr_codes` model and assigns it the type "vCards".
  */
-export type VCardQRCode = vcardqrcodes & {
+export type VCardQRCode = vcard_qr_codes & {
     type: "vCards";
 }
 

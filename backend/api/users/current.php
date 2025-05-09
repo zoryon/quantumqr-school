@@ -22,8 +22,8 @@ try {
 
     // Find confirmed user
     $query = "SELECT u.*, t.name AS tier,
-            (SELECT COUNT(*) FROM qrcodes WHERE userId = u.id) AS qrCodesCount,
-            (SELECT SUM(scans) FROM qrcodes WHERE userId = u.id) AS totalScans
+            (SELECT COUNT(*) FROM qr_codes WHERE userId = u.id) AS qrCodesCount,
+            (SELECT SUM(scans) FROM qr_codes WHERE userId = u.id) AS totalScans
           FROM users u
           JOIN subscriptions s ON u.id = s.userId
           JOIN tiers t ON s.tierId = t.id

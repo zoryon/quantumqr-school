@@ -31,7 +31,7 @@ try {
     }
 
     // Perform deletion
-    $affectedRows = $db->delete("qrcodes", [
+    $affectedRows = $db->delete("qr_codes", [
         "id" => $qrId, 
         "userId" => $userId
     ]);

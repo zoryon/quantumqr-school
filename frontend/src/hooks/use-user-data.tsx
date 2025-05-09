@@ -37,7 +37,7 @@ export function UserDataProvider({ children }: { children: React.ReactNode }) {
     }, []);
 
     function isAdmin() {
-        return !isPending && userData?.isAdmin === 1;
+        return !isPending && userData?.role === "admin";
     }
 
     return (
