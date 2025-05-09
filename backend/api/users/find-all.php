@@ -1,4 +1,5 @@
 <?php
+
 require_once '../../vendor/autoload.php';
 require_once '../../db/DB.php';
 require_once '../../db/ApiResponse.php';
@@ -23,13 +24,13 @@ try {
     $currentUser = $db->selectOne("users", [
         "id" => $userId, 
         "isEmailConfirmed" => true, 
-        "role" => UserRole::ADMIN
+        "role" => UserRole::ADMIN->value
     ]);
     if (!$currentUser || empty($currentUser)) {
         ApiResponse::notFound()->send();
     }
 
-    $users = $db->select('users', ["role" => UserRole::USER]);
+    $users = $db->select('users', ["role" => UserRole::USER->value]);
     if (!$users) {
         ApiResponse::internalServerError()->send();
     }

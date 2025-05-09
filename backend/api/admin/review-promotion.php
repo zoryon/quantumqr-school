@@ -24,7 +24,7 @@ try {
     // Find session user and verify it's an admin making the request
     $user = $db->selectOne("users", [
         "id" => $userId, 
-        "role" => UserRole::ADMIN,
+        "role" => UserRole::ADMIN->value,
         "isEmailConfirmed" => true
     ]);
 
@@ -47,7 +47,7 @@ try {
     }
 
     if (!empty($input["acceptedAt"]) && $input["acceptedAt"] !== null) {
-        $affectedRows = $db->update("users", ["role" => UserRole::ADMIN], [
+        $affectedRows = $db->update("users", ["role" => UserRole::ADMIN->value], [
             "id" => $input["userId"],
             "isEmailConfirmed" => true
         ]);

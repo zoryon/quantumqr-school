@@ -28,7 +28,7 @@ try {
         ApiResponse::notFound()->send();
     }
 
-    if ($user["role"] === UserRole::ADMIN) {
+    if ($user["role"] === UserRole::ADMIN->value) {
         ApiResponse::clientError('Already an admin')->send();
     }
 

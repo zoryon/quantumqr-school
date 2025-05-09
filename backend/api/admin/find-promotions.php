@@ -24,7 +24,7 @@ try {
     // Find confirmed user
     $user = $db->selectOne("users", [
         "id" => $userId, 
-        "role" => UserRole::ADMIN,
+        "role" => UserRole::ADMIN->value,
         "isEmailConfirmed" => true
     ]);
 
