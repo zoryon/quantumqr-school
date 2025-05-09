@@ -26,12 +26,12 @@ try {
         "isEmailConfirmed" => true, 
         "role" => UserRole::ADMIN->value
     ]);
-    if (!$currentUser || empty($currentUser)) {
+    if ($currentUser === null) {
         ApiResponse::notFound()->send();
     }
 
     $users = $db->select('users', ["role" => UserRole::USER->value]);
-    if (!$users) {
+    if ($users === null) {
         ApiResponse::internalServerError()->send();
     }
 

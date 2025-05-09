@@ -74,83 +74,106 @@ class DB
             $sql .= " WHERE " . implode(' AND ', $where);
         }
 
-        $stmt = $this->execute($sql, $params);
-        return $stmt ? $stmt->fetchAll($fetchMode) : null;
+        try {
+            $stmt = $this->execute($sql, $params);
+            $result = $stmt->fetchAll($fetchMode);
+            return empty($result) ? [] : $result;
+        } catch (PDOException $e) {
+            return null;
+        }
     }
 
     // SELECT single row
     public function selectOne($table, $conditions = [], $fetchMode = PDO::FETCH_ASSOC)
     {
         $result = $this->select($table, $conditions, $fetchMode);
-        return $result ? $result[0] : null;
+        return ($result && !empty($result)) ? $result[0] : null;
     }
 
     // INSERT
     public function insert($table, $data)
     {
-        $columns = implode(', ', array_keys($data));
-        $placeholders = implode(', ', array_fill(0, count($data), '?'));
-        $sql = "INSERT INTO $table ($columns) VALUES ($placeholders)";
+        try {
+            $columns = implode(', ', array_keys($data));
+            $placeholders = implode(', ', array_fill(0, count($data), '?'));
+            $sql = "INSERT INTO $table ($columns) VALUES ($placeholders)";
 
-        $stmt = $this->execute($sql, array_values($data));
-        return $stmt ? (int)$this->pdo->lastInsertId() : null;
+            $this->execute($sql, array_values($data));
+            return (int)$this->pdo->lastInsertId();
+        } catch (PDOException $e) {
+            return null;
+        }
     }
 
     // UPDATE
     public function update($table, $data, $conditions)
     {
-        $set = [];
-        $params = [];
+        try {
+            $set = [];
+            $params = [];
 
-        foreach ($data as $key => $value) {
-            $set[] = "$key = ?";
-            $params[] = $value;
-        }
+            foreach ($data as $key => $value) {
+                $set[] = "$key = ?";
+                $params[] = $value;
+            }
 
-        $where = [];
-        foreach ($conditions as $key => $value) {
-            $where[] = "$key = ?";
-            $params[] = $value;
-        }
-
-        $sql = "UPDATE $table SET " . implode(', ', $set) . " WHERE " . implode(' AND ', $where);
-        $stmt = $this->execute($sql, $params);
-        return $stmt ? (int)$stmt->rowCount() : null;
-    }
-
-    // DELETE
-    public function delete($table, $conditions)
-    {
-        $where = [];
-        $params = [];
-
-        foreach ($conditions as $key => $value) {
-            $where[] = "$key = ?";
-            $params[] = $value;
-        }
-
-        $sql = "DELETE FROM $table WHERE " . implode(' AND ', $where);
-        $stmt = $this->execute($sql, $params);
-        return $stmt ? (int)$stmt->rowCount() : null;
-    }
-
-    // Count
-    public function count($table, $conditions = [], $fetchMode = PDO::FETCH_ASSOC)
-    {
-        $sql = "SELECT COUNT(*) AS count FROM $table";
-        $params = [];
-
-        if (!empty($conditions)) {
             $where = [];
             foreach ($conditions as $key => $value) {
                 $where[] = "$key = ?";
                 $params[] = $value;
             }
-            $sql .= " WHERE " . implode(' AND ', $where);
-        }
 
-        $stmt = $this->execute($sql, $params);
-        $result = $stmt ? $stmt->fetchAll($fetchMode) : false;
-        return $result ? $result[0] : null;
+            $sql = "UPDATE $table SET " . implode(', ', $set) . " WHERE " . implode(' AND ', $where);
+            $stmt = $this->execute($sql, $params);
+            return (int)$stmt->rowCount();
+        } catch (PDOException $e) {
+            return null;
+        }
+        
+    }
+
+    // DELETE
+    public function delete($table, $conditions)
+    {
+        try {
+            $where = [];
+            $params = [];
+
+            foreach ($conditions as $key => $value) {
+                $where[] = "$key = ?";
+                $params[] = $value;
+            }
+
+            $sql = "DELETE FROM $table WHERE " . implode(' AND ', $where);
+            $stmt = $this->execute($sql, $params);
+            return (int)$stmt->rowCount();
+        } catch (PDOException $e) {
+            return null;
+        }
+    }
+
+    // Count
+    public function count($table, $conditions = [], $fetchMode = PDO::FETCH_ASSOC)
+    {
+        try {
+            $sql = "SELECT COUNT(*) AS count FROM $table";
+            $params = [];
+
+            if (!empty($conditions)) {
+                $where = [];
+                foreach ($conditions as $key => $value) {
+                    $where[] = "$key = ?";
+                    $params[] = $value;
+                }
+                $sql .= " WHERE " . implode(' AND ', $where);
+            }
+
+            $stmt = $this->execute($sql, $params);
+            $result = $stmt->fetchAll($fetchMode);
+            return $result[0]['count'] ?? 0;
+        } catch (PDOException $e) {
+            return null;
+        }
+        
     }
 }

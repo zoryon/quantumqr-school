@@ -33,11 +33,9 @@ try {
     }
 
     $promotionRequests = $db->select("promotion_requests", [ "reviewedAt" => null ]);
-    if ($promotionRequests == null) {
-        $promotionRequests = [];
-    } elseif ($promotionRequests === false) {
+    if ($promotionRequests === null) {
         ApiResponse::internalServerError()->send();
-    }
+    } 
 
     ApiResponse::success('Promotion requests found successfully', $promotionRequests)->send();
 } catch (Exception $e) {

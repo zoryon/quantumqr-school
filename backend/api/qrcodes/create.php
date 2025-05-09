@@ -36,7 +36,7 @@ try {
         ApiResponse::notFound()->send();
     }
 
-    if ($qrCodesNum["count"] >= $userTier["maxQRCodes"]) {
+    if ($qrCodesNum >= $userTier["maxQRCodes"]) {
         ApiResponse::forbidden('You have reached the maximum number of QR codes for your plan')->send();
     }
 
