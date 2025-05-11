@@ -6,8 +6,6 @@ require_once '../../../db/ApiResponse.php';
 require_once '../../../lib/session.php';
 require_once '../../../lib/mailer.php';
 
-$SESSION_SECRET = '171ba917ee3c87ccc7628e79e96e6804dd0c416b8e01b6a55051a0442bbc5e85';
-
 // Handle POST request
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     ApiResponse::methodNotAllowed()->send();
@@ -19,7 +17,11 @@ try {
     // Check existing session
     $userId = getIdFromSessionToken($_COOKIE['session_token'] ?? '');
     if ($userId) {
-        ApiResponse::clientError('You are already logged inn')->send();
+        ApiResponse::clientError('You are already logged in')->send();
+    }
+
+    if (isBanned($userId)) {
+        ApiResponse::forbidden("You are currently under a ban")->send();
     }
 
     // Lettura del body della richiesta

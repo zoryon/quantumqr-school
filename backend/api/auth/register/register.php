@@ -32,13 +32,11 @@ try {
             ApiResponse::clientError('Invalid parameters')->send();
         }
     
-        // Verifica ulteriore per i campi stringa: non devono essere vuoti dopo il trim
         if ($type === 'string' && empty(trim($input[$field]))) {
             ApiResponse::clientError('Invalid parameters')->send();
         }
     }
 
-    // Validazioni aggiuntive
     if (strlen($input['username']) < 2) {
         ApiResponse::clientError('Username must be at least 2 characters long')->send();
     }
@@ -51,7 +49,6 @@ try {
         ApiResponse::clientError('Passwords do not match')->send();
     }
 
-    // Controllo utente esistente
     $stmt = $db->execute(
         "SELECT * FROM active_users WHERE email = ? OR username = ?", [
             $input['email'], 
@@ -68,7 +65,6 @@ try {
     // Hash password
     $hashedPasswd = password_hash($input['password'], PASSWORD_BCRYPT);
 
-    // Creazione utente
     $userId = $db->insert("users", [
         "email" => $input['email'],
         "username" => $input['username'],
@@ -77,16 +73,14 @@ try {
         "isEmailConfirmed" => false
     ]);
 
-    // Generazione token JWT
     $payload = [
         'userId' => $userId,
-        'exp' => time() + 600 // 10 minuti
+        'exp' => time() + 600 // 10 minutes
     ];
 
     $token = JWT::encode($payload, $MAILER_SECRET, 'HS256');
     $link = "$WEBSITE_URL/register/confirm?token=$token";
 
-    // Invio email (configura PHPMailer secondo le tue esigenze)
     $mail = new PHPMailer(true);
     $mail->isSMTP();
     $mail->Host = 'smtp.gmail.com';

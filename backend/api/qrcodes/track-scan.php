@@ -15,12 +15,12 @@ try {
     // Get and validate input
     $input = json_decode(file_get_contents('php://input'), true);
     
-    if (!$input || !isset($input['id'])) {
+    if (!isset($input['id'])) {
         ApiResponse::clientError('Missing QR code ID')->send();
     }
 
     $qrId = (int)$input['id'];
-    if ($qrId <= 0) {
+    if ($qrId < 0) {
         ApiResponse::clientError('Invalid QR code ID')->send();
     }
 

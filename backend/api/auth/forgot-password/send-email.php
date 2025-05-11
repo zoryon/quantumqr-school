@@ -10,7 +10,6 @@ require_once '../../../lib/session.php';
 require_once '../../../lib/mailer.php';
 
 $WEBSITE_URL = 'http://localhost:3000';
-$SESSION_SECRET = '171ba917ee3c87ccc7628e79e96e6804dd0c416b8e01b6a55051a0442bbc5e85';
 $RESET_SECRET = '765bdd7a336d24a41f64d023915735cf6164eedbee20bb1f6b57e96a13eb5502';
 $SMTP_FROM = 'auth@quantumqr.it';
 
@@ -26,6 +25,10 @@ try {
     $userId = getIdFromSessionToken($_COOKIE['session_token'] ?? '');
     if ($userId) {
         ApiResponse::forbidden('You are already logged in')->send();
+    }
+
+    if (isBanned($userId)) {
+        ApiResponse::forbidden("You are currently under a ban")->send();
     }
 
     // Lettura del body della richiesta

@@ -5,6 +5,12 @@ export const API_CONFIG = {
     current: { method: "GET" },
     requestPromotion: { method: "POST" },
   },
+  admin: {
+    findPromotions: { method: "GET" },
+    reviewPromotion: { method: "POST" },
+    banUser: { method: "POST" },
+    findAllUsers: { method: "GET" },
+  },
   qrcodes: {
     find: { method: "GET" },
     findAll: { method: "GET" },
@@ -30,10 +36,4 @@ export const API_CONFIG = {
     tiers: { method: "GET" },
     change: { method: "POST" },
   },
-  admin: {
-    findPromotions: { method: "GET" },
-    reviewPromotion: { method: "POST" },
-    banUser: { method: "POST" },
-    findAllUsers: { method: "GET" },
-  }
 } satisfies ApiDefinition;

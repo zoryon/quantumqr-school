@@ -25,7 +25,7 @@ try {
     }
 
     if (isBanned($userId)) {
-        ApiResponse::forbidden("You are under a ban currently")->send();
+        ApiResponse::forbidden("You are currently under a ban")->send();
     }
 
     // Build SQL query
@@ -99,11 +99,9 @@ try {
             }
         }
 
-        // Costruzione risultato
         $transformed[] = [
             'id' => (int)$qr['id'],
             'name' => $qr['name'],
-            'userId' => (int)$qr['userId'],
             'url' => $qr['url'],
             'createdAt' => $qr['createdAt'],
             'updatedAt' => $qr['updatedAt'],

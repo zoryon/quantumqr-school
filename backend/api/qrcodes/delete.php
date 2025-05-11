@@ -20,7 +20,7 @@ try {
     }
     
     if (isBanned($userId)) {
-        ApiResponse::forbidden("You are under a ban currently")->send();
+        ApiResponse::forbidden("You are currently under a ban")->send();
     }
 
     // Parse input

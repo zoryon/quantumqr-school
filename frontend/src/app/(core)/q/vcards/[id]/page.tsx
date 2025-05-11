@@ -29,16 +29,10 @@ const VCardPage = () => {
 
         const fetchData = async () => {
             try {
-                const response = await fetch(
-                    `${api.qrcodes.find.query({
-                        id: qrCodeId,
-                        type: type,
-                    })}`,
-                    {
-                        method: "GET",
-                        headers: { "Content-Type": "application/json" },
-                    }
-                );
+                const response = await fetch(`${api.qrcodes.find.query({ id: qrCodeId, type: type })}`, {
+                    method: "GET",
+                    headers: { "Content-Type": "application/json" },
+                });
 
                 if (!response.ok) throw new Error("Fetch failed");
 
@@ -62,7 +56,7 @@ const VCardPage = () => {
     if (loading) {
         return (
             <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-                <div className="text-indigo-400 animate-pulse">Loading hologram...</div>
+                <div className="text-indigo-400 animate-pulse">Loading...</div>
             </div>
         );
     }
