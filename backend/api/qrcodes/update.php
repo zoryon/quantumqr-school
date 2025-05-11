@@ -33,6 +33,10 @@ try {
         ApiResponse::unauthorized()->send();
     }
 
+    if (isBanned($userId)) {
+        ApiResponse::forbidden("You are under a ban currently")->send();
+    }
+
     // Get and validate input
     $input = json_decode(file_get_contents('php://input'), true);
     if (!$input || !isset($input['id'], $input['type'])) {

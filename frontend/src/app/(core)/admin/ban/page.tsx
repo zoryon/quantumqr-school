@@ -9,7 +9,7 @@ const BanUsersPage = () => {
 
     useEffect(() => {
         async function fetchUserList() {
-            const res: ResultType = await fetch(api.users.findAll.toString(), { 
+            const res: ResultType = await fetch(api.admin.findAllUsers.toString(), { 
                 method: "GET" 
             }).then(res => res.json());
 

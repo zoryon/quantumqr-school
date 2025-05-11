@@ -100,6 +100,14 @@ CREATE TABLE vcard_qr_codes (
     FOREIGN KEY(qrCodeId) REFERENCES qr_codes(id) ON DELETE CASCADE
 );
 
+-- Non-banned verified users
+CREATE VIEW active_users AS
+SELECT u.*
+FROM users AS u
+LEFT JOIN banned_users bu ON u.id = bu.userId AND (bu.endsAt IS NULL OR bu.endsAt > CURRENT_TIMESTAMP)
+WHERE bu.userId IS NULL
+AND u.isEmailConfirmed = true;
+
 -- Add default server variables
 -- Tiers
 INSERT INTO tiers (name, price, description, maxQRCodes) VALUES ("Free", 0, "Free plan which is automatically set for any person who registers.", 10);

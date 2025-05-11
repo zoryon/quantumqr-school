@@ -20,11 +20,15 @@ try {
         ApiResponse::notFound()->send();
     }
 
+    if (isBanned($userId)) {
+        ApiResponse::forbidden("You are under a ban currently")->send();
+    }
+
     // Find confirmed user
     $query = "SELECT u.*, t.name AS tier,
             (SELECT COUNT(*) FROM qr_codes WHERE userId = u.id) AS qrCodesCount,
             (SELECT SUM(scans) FROM qr_codes WHERE userId = u.id) AS totalScans
-          FROM users u
+          FROM active_users AS u
           JOIN subscriptions s ON u.id = s.userId
           JOIN tiers t ON s.tierId = t.id
           WHERE u.id = ?";

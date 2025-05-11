@@ -44,9 +44,8 @@ try {
     // Find the user by email or username
     $stmt = $db->execute(
         "SELECT id, email, username
-        FROM users
+        FROM active_users
         WHERE email = ? OR username = ?
-        AND isEmailConfirmed = 1
         ", 
         [$input['emailOrUsername'], $input['emailOrUsername']]
     );

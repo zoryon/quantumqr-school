@@ -18,6 +18,10 @@ try {
     if (!$userId) {
         ApiResponse::unauthorized('You are not logged in')->send();
     }
+    
+    if (isBanned($userId)) {
+        ApiResponse::forbidden("You are under a ban currently")->send();
+    }
 
     // Parse input
     $input = json_decode(file_get_contents('php://input'), true);

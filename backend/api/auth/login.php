@@ -35,8 +35,7 @@ try {
 
     // Creazione utente
     $stmt = $db->execute(
-        "SELECT * FROM users WHERE (email = ? OR username = ?) AND isEmailConfirmed = 1",
-        [
+        "SELECT * FROM active_users WHERE (email = ? OR username = ?)", [
             $input['emailOrUsername'],
             $input['emailOrUsername'],
         ]

@@ -20,17 +20,20 @@ try {
         ApiResponse::notFound()->send();
     }
 
+    if (isBanned($userId)) {
+        ApiResponse::forbidden("You are under a ban currently")->send();
+    }
+
     // Check if current session is admin
-    $currentUser = $db->selectOne("users", [
+    $currentUser = $db->selectOne("active_users", [
         "id" => $userId, 
-        "isEmailConfirmed" => true, 
         "role" => UserRole::ADMIN->value
     ]);
     if ($currentUser === null) {
         ApiResponse::notFound()->send();
     }
 
-    $users = $db->select('users', ["role" => UserRole::USER->value]);
+    $users = $db->select('active_users', ["role" => UserRole::USER->value]);
     if ($users === null) {
         ApiResponse::internalServerError()->send();
     }

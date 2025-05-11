@@ -21,8 +21,12 @@ try {
         ApiResponse::notFound()->send();
     }
 
+    if (isBanned($userId)) {
+        ApiResponse::forbidden("You are under a ban currently")->send();
+    }
+
     // Find confirmed user
-    $user = $db->selectOne("users", ["id" => $userId]);
+    $user = $db->selectOne("active_users", ["id" => $userId]);
 
     if (!$user || empty($user)) {
         ApiResponse::notFound()->send();

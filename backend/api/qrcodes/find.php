@@ -30,6 +30,10 @@ try {
         ApiResponse::unauthorized()->send();
     }
 
+    if (isBanned($userId)) {
+        ApiResponse::forbidden("You are under a ban currently")->send();
+    }
+
     // Recupero e validazione parametri
     $qrCodeId = $_GET['id'] ?? null;
     $type = $_GET['type'] ?? null;

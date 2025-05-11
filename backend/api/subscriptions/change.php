@@ -19,6 +19,10 @@ try {
         ApiResponse::notFound()->send();
     }
 
+    if (isBanned($userId)) {
+        ApiResponse::forbidden("You are under a ban currently")->send();
+    }
+
     $subscription = $db->selectOne("subscriptions", [
         "userId" => $userId,
         "canceledAt" => null

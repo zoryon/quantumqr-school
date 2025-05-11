@@ -1,6 +1,7 @@
 <?php
 
-// MUST REQUIRE: require_once '../../vendor/autoload.php';
+require_once '../../vendor/autoload.php';
+require_once '../../db/DB.php';
 
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
@@ -10,8 +11,8 @@ use Firebase\JWT\SignatureInvalidException;
 $SESSION_SECRET = '171ba917ee3c87ccc7628e79e96e6804dd0c416b8e01b6a55051a0442bbc5e85';
 
 /**
- * Decodifica il JWT e restituisce lo user ID
- * @return int|false Restituce l'ID utente o false se non autenticato
+ * Decrypt the JWT and return the user's ID
+ * @return int|false Return user's ID or false if not authenticated
  */
 function getIdFromSessionToken(string $sessionToken): string | bool {
     if (empty(trim($sessionToken))) {
@@ -33,7 +34,15 @@ function getIdFromSessionToken(string $sessionToken): string | bool {
     }
 }
 
-// Funzione per verificare il login
+// Verify if current users is logged in or not
 function isLoggedIn(string $sessionToken): bool {
     return getIdFromSessionToken($sessionToken) !== false;
+}
+
+function isBanned(int $id): bool {
+    $db = DB::getInstance();
+
+    $user = $db->selectOne("active_users", ["id" => $id]);
+
+    return $user ? false : true;
 }

@@ -22,10 +22,9 @@ try {
     }
 
     // Find confirmed user
-    $user = $db->selectOne("users", [
+    $user = $db->selectOne("active_users", [
         "id" => $userId, 
         "role" => UserRole::ADMIN->value,
-        "isEmailConfirmed" => true
     ]);
 
     if (!$user || empty($user)) {

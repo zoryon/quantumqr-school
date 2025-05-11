@@ -20,6 +20,10 @@ try {
         ApiResponse::notFound()->send();
     }
 
+    if (isBanned($userId)) {
+        ApiResponse::forbidden("You are under a ban currently")->send();
+    }
+
     // Check if creation is allowed based on user's tier
     $subscription = $db->selectOne("subscriptions", [
         "userId" => $userId, 

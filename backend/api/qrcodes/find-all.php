@@ -24,6 +24,10 @@ try {
         ApiResponse::unauthorized()->send();
     }
 
+    if (isBanned($userId)) {
+        ApiResponse::forbidden("You are under a ban currently")->send();
+    }
+
     // Build SQL query
     $selectFields = [
         'q.id', 'q.name', 'q.userId', 'q.url', 

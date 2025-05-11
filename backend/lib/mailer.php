@@ -8,8 +8,8 @@ use Firebase\JWT\SignatureInvalidException;
 $RESET_SECRET = '765bdd7a336d24a41f64d023915735cf6164eedbee20bb1f6b57e96a13eb5502';
 
 /**
- * Decodifica il JWT e restituisce lo user ID
- * @return int|false Restituce l'ID utente o false se non autenticato
+ * Decrypt the JWT and return the user's ID
+ * @return int|false Return user's ID or false if not authenticated
  */
 function getIdFromResetToken(string $resetToken): string | bool {
     if (empty(trim($resetToken))) {

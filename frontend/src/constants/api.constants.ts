@@ -4,7 +4,6 @@ export const API_CONFIG = {
   users: {
     current: { method: "GET" },
     requestPromotion: { method: "POST" },
-    findAll: { method: "GET" },
   },
   qrcodes: {
     find: { method: "GET" },
@@ -35,5 +34,6 @@ export const API_CONFIG = {
     findPromotions: { method: "GET" },
     reviewPromotion: { method: "POST" },
     banUser: { method: "POST" },
+    findAllUsers: { method: "GET" },
   }
 } satisfies ApiDefinition;

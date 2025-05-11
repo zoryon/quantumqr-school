@@ -53,8 +53,10 @@ try {
 
     // Controllo utente esistente
     $stmt = $db->execute(
-        "SELECT * FROM users WHERE email = ? OR username = ?",
-        [$input['email'], $input['username']]
+        "SELECT * FROM active_users WHERE email = ? OR username = ?", [
+            $input['email'], 
+            $input['username']
+        ]
     );
     $existingUserArray = $stmt->fetchAll(PDO::FETCH_ASSOC);
     $existingUser = $existingUserArray[0] ?? null;
