@@ -27,13 +27,11 @@ try {
             ApiResponse::clientError('Invalid parameters.')->send();
         }
     
-        // Verifica ulteriore per i campi stringa: non devono essere vuoti dopo il trim
         if ($type === 'string' && empty(trim($input[$field]))) {
             ApiResponse::clientError('Invalid parameters')->send();
         }
     }
 
-    // Creazione utente
     $stmt = $db->execute(
         "SELECT * FROM active_users WHERE (email = ? OR username = ?)", [
             $input['emailOrUsername'],
@@ -77,7 +75,6 @@ try {
         ]
     );    
 
-    // Risposta di successo
     ApiResponse::success('Logged in successfully, you\'ll be redirected shortly..', true)->send();
 } catch (Exception $e) {
     ApiResponse::internalServerError($e->getMessage())->send();

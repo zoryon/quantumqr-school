@@ -10,7 +10,7 @@ const BanUsersPage = () => {
     useEffect(() => {
         async function fetchUserList() {
             const res: ResultType = await fetch(api.admin.findAllUsers.toString(), { 
-                method: "GET" 
+                method: "GET"
             }).then(res => res.json());
 
             if (res.success) {
@@ -28,7 +28,7 @@ const BanUsersPage = () => {
 
         const res: ResultType = await fetch(api.admin.banUser.toString(), {
             method: "POST",
-            body: JSON.stringify({ email })
+            body: JSON.stringify({ banEmail: email })
         }).then(res => res.json());
 
         if (res.success) {

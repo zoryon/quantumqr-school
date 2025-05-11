@@ -16,11 +16,11 @@ CREATE TABLE users (
 
 CREATE TABLE banned_users (
     userId INT PRIMARY KEY,
-    bannerAdminId INT,
-    endsAt TIMESTAMP,
+    bannerAdminId INT NULL,
+    endsAt TIMESTAMP NULL,
     startedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY(userId) REFERENCES users(id) ON DELETE CASCADE,
-    FOREIGN KEY(bannerAdminId) REFERENCES users(id) ON DELETE SET NULL
+    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (bannerAdminId) REFERENCES users(id) ON DELETE SET NULL
 );
 
 CREATE TABLE promotion_requests (
