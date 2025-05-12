@@ -121,7 +121,7 @@ INSERT INTO card_types (name) VALUES ("Master Card");
 
 -- HELPERS
 -- CREATE ADMIN USER
--- INSERT INTO users(role, email, username, password, isEmailConfirmed) VALUES("admin", "gioelespata@gmail.com", "admin", "$2y$10$JHAaq6r9G04hedX/1rZqQedxk9Ymx89z1BT/HOp5gLae149Oe9nwq", true);
+-- INSERT INTO users(role, email, username, password, isEmailConfirmed) VALUES("admin", "gioelespata@gmail.com", "zoryon", "$2y$10$JHAaq6r9G04hedX/1rZqQedxk9Ymx89z1BT/HOp5gLae149Oe9nwq", true);
 -- INSERT INTO subscriptions(userId, tierId) VALUES(4, 4);
 
 -- OTHER STUFF

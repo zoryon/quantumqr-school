@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { ADMIN_ACTIVITIES } from "@/constants";
 import { useUserData } from "@/hooks/use-user-data";
 import { cn } from "@/lib/utils";
@@ -7,6 +8,9 @@ import { AdminActivity } from "@/types";
 import Link from "next/link";
 
 const AdminDashboard = () => {
+    const [usersCount, setUsersCount] = useState<number>(0);
+    const [reviewsCount, setReviewsCount] = useState<number>(0);
+    
     const { userData } = useUserData();
 
     return (
@@ -35,11 +39,11 @@ const AdminDashboard = () => {
                     <div className="grid grid-cols-2 gap-4 text-center">
                         <div className="bg-gray-800/50 p-4 rounded-xl">
                             <p className="text-gray-400 text-sm mb-1">Total Users</p>
-                            <p className="text-2xl font-bold text-blue-400">1,234</p>
+                            <p className="text-2xl font-bold text-blue-400">{usersCount}</p>
                         </div>
                         <div className="bg-gray-800/50 p-4 rounded-xl">
                             <p className="text-gray-400 text-sm mb-1">Pending Reviews</p>
-                            <p className="text-2xl font-bold text-purple-400">23</p>
+                            <p className="text-2xl font-bold text-purple-400">{reviewsCount}</p>
                         </div>
                     </div>
                 </div>

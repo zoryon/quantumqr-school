@@ -25,7 +25,6 @@ export function UserDataProvider({ children }: { children: React.ReactNode }) {
 
             setUserData(res.data);
         } catch (err) {
-            console.log("coap")
             console.error(err);
         } finally {
             setIsPending(false);

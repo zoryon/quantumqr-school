@@ -14,9 +14,7 @@ $WEBSITE_URL = 'http://localhost:3000'; // Base URL for the password reset link
 $RESET_SECRET = '765bdd7a336d24a41f64d023915735cf6164eedbee20bb1f6b57e96a13eb5502'; // Secret key for JWT signing
 $SMTP_FROM = 'auth@quantumqr.it'; // Sender email address for the reset email
 
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    ApiResponse::methodNotAllowed()->send();
-}
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') ApiResponse::methodNotAllowed()->send();
 
 $db = DB::getInstance();
 
@@ -24,12 +22,11 @@ try {
     // Check if a session token exists (meaning the user is already logged in)
     $userId = getIdFromSessionToken($_COOKIE['session_token'] ?? ''); 
     if ($userId) ApiResponse::forbidden('You are already logged in. Please log out if you wish to reset your password.')->send(); 
-
     if (isBanned($userId)) ApiResponse::forbidden("You are currently under a ban")->send();
 
     $input = json_decode(file_get_contents('php://input'), true);
 
-    // Validate input: ensure 'emailOrUsername' is provided and not empty
+    // Ensure 'emailOrUsername' is provided and not empty
     if (empty(trim($input['emailOrUsername']))) {
         ApiResponse::clientError('Either email or username is required')->send();
     }
@@ -44,7 +41,7 @@ try {
     );
     $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    if (empty($users) || $users === null) ApiResponse::notFound()->send(); 
+    if (empty($users) || $users === null) ApiResponse::notFound('User not found')->send(); 
 
     // Assume the first result is the correct user (should be unique)
     $user = $users[0];
@@ -66,8 +63,8 @@ try {
     $mail->isSMTP();                                    // Send using SMTP
     $mail->Host = 'smtp.gmail.com';                     // Set the SMTP server to send through
     $mail->SMTPAuth = true;                             // Enable SMTP authentication
-    $mail->Username = 'dev.meucci@gmail.com';           // SMTP username (my email address)
-    $mail->Password = 'bbza frnd lszq hkmw';            // SMTP password (my email app password)
+    $mail->Username = 'test.zoryon@gmail.com';          // SMTP username (my email address)
+    $mail->Password = 'jeor fpgn biim rkbo';            // SMTP password (my email app password)
     $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;    // Enable implicit TLS encryption
     $mail->Port = 465;                                  // TCP port to connect to
 
@@ -92,7 +89,7 @@ try {
 
     $mail->send(); 
 
-    ApiResponse::success('If a user with that email or username exists, a password reset link will be sent. Please check your email.', true)->send();
+    ApiResponse::success('An email will be sent', true)->send();
 } catch (Exception $e) {
     ApiResponse::internalServerError('An error occurred while processing your request. Please try again later.')->send();
 }

@@ -1,7 +1,7 @@
 <?php
 
-require_once '../../vendor/autoload.php';
-require_once '../../db/DB.php';
+require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/../db/DB.php';
 
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
@@ -24,10 +24,8 @@ function getIdFromSessionToken(string $sessionToken): string | bool {
         $decoded = JWT::decode($sessionToken, new Key($SESSION_SECRET, 'HS256'));
         return $decoded->userId;
     } catch (ExpiredException $e) {
-        // Token scaduto
         return false;
     } catch (SignatureInvalidException $e) {
-        // Firma non valida
         return false;
     } catch (Exception $e) {
         return false;
@@ -42,7 +40,7 @@ function isLoggedIn(string $sessionToken): bool {
 function isBanned(int $id): bool {
     $db = DB::getInstance();
 
-    $user = $db->selectOne("active_users", ["id" => $id]);
+    $user = $db->selectOne("banned_users", ["id" => $id]);
 
-    return $user ? false : true;
+    return $user ? true : false;
 }

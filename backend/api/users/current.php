@@ -17,9 +17,10 @@ try {
 
     // Select user details from active_users, join with subscriptions and tiers to get tier name.
     // Using subqueries to count QR codes and sum their scans for this user.
+    // Using SUM returns null if there are no scans, COALESCE make so it returns 0 instead
     $query = "SELECT u.*, t.name AS tier,
               (SELECT COUNT(*) FROM qr_codes WHERE userId = u.id) AS qrCodesCount,
-              (SELECT SUM(scans) FROM qr_codes WHERE userId = u.id) AS totalScans
+              (SELECT COALESCE(SUM(scans), 0) FROM qr_codes WHERE userId = u.id) AS totalScans
            FROM active_users AS u
            JOIN subscriptions s ON u.id = s.userId
            JOIN tiers t ON s.tierId = t.id

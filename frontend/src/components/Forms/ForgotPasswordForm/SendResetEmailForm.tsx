@@ -68,7 +68,7 @@ const SendResetEmailForm = () => {
                             <FormControl>
                                 <Input
                                     type="text"
-                                    placeholder="your email"
+                                    placeholder="your email or username"
                                     {...field}
                                     className="bg-gray-700/20 border-gray-600/50 focus:border-indigo-400/50 focus:ring-indigo-400/50 text-gray-100"
                                 />
