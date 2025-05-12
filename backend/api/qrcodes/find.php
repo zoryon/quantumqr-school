@@ -10,15 +10,10 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 }
 
 const TYPE_MAPPING = [
-    'vCards' => [
-        'table' => 'vcard_qr_codes',
-        'fields' => ['firstName', 'lastName', 'phoneNumber', 'email', 'address', 'websiteUrl']
-    ],
-    'classics' => [
-        'table' => 'classic_qr_codes',
-        'fields' => ['targetUrl']
-    ]
+    'vCards' => 'vcard_qr_codes',
+    'classics' => 'classic_qr_codes',
 ];
+
 
 $db = DB::getInstance();
 
@@ -58,15 +53,15 @@ try {
     $isOwner = $userId !== null && (int)$userId === (int)$baseQr['userId'];
 
     // Fetch Type-Specific Data
-    $typeConfig = TYPE_MAPPING[$type];
-    $specificTableName = $typeConfig['table'];
-    $fields = implode(', ', $typeConfig['fields']);
-    
+    $specificTableName = TYPE_MAPPING[$type];
     $specificData = $db->selectOne($specificTableName, ["qrCodeId" => $qrCodeId]);
 
-    if (empty($specificData)) {
+    if ($specificData === null) {
         ApiResponse::notFound('Detailed QR code data not found')->send();
     }
+
+    // Remove the primary key (qrCodeId) from the response
+    unset($specificData['qrCodeId']);
 
     $response = [
         'type' => $type,
@@ -74,11 +69,9 @@ try {
         'url' => $baseQr['url']
     ];
 
-    // Add specific fields
-    foreach ($typeConfig['fields'] as $field) {
-        if (isset($specificData[$field])) {
-            $response[$field] = $specificData[$field];
-        }
+    // Add all specific fields dynamically
+    foreach ($specificData as $key => $value) {
+        $response[$key] = $value;
     }
 
     // Include owner-specific details if the user is the owner

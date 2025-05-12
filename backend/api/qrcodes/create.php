@@ -6,7 +6,6 @@ require_once '../../db/ApiResponse.php';
 require_once '../../lib/session.php';
 require_once '../../lib/qrcode.php';
 
-// Validate POST method
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     ApiResponse::methodNotAllowed()->send();
 }

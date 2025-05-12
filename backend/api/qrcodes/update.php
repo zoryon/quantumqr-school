@@ -9,7 +9,6 @@ require_once '../../lib/session.php';
 const TYPE_MAPPING = [
     'vCards' => [
         'table' => 'vcard_qr_codes',
-        'fields' => ['firstName', 'lastName', 'phoneNumber', 'email', 'address', 'websiteUrl'],
         'validation' => [
             'firstName' => 'required|string|max:255',
             'lastName' => 'required|string|max:255',
@@ -17,7 +16,6 @@ const TYPE_MAPPING = [
     ],
     'classics' => [
         'table' => 'classic_qr_codes',
-        'fields' => ['targetUrl'],
         'validation' => [
             'targetUrl' => 'required|url|max:255'
         ]
@@ -29,13 +27,8 @@ $db = DB::getInstance();
 try {
     // Validate session
     $userId = getIdFromSessionToken($_COOKIE['session_token'] ?? '');
-    if (!$userId) {
-        ApiResponse::unauthorized()->send();
-    }
-
-    if (isBanned($userId)) {
-        ApiResponse::forbidden("You are currently under a ban")->send();
-    }
+    if (!$userId) ApiResponse::unauthorized()->send();
+    if (isBanned($userId)) ApiResponse::forbidden("You are currently under a ban")->send();
 
     // Get and validate input
     $input = json_decode(file_get_contents('php://input'), true);
@@ -55,6 +48,11 @@ try {
     $data = $input;
     unset($data['id'], $data['type']);
 
+    // Get dynamic fields from database schema
+    $stmt = $db->execute("SHOW COLUMNS FROM {$typeConfig['table']}");
+    $columns = $stmt->fetchAll(PDO::FETCH_COLUMN);
+    $specificFields = array_diff($columns, ['qrCodeId']);
+
     // Validate data
     $validationErrors = validateData($data, $typeConfig['validation']);
     if (!empty($validationErrors)) {
@@ -62,56 +60,46 @@ try {
     }
 
     // Check for duplicate name (excluding current QR)
-    $stmt = $db->execute(
-        "SELECT id FROM qr_codes WHERE userId = ? AND name = ? AND id != ?",
-        [$userId, $data['name'], $qrId]
-    );
-    $existing = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-    if (!empty($existing)) {
-        ApiResponse::clientError('A QR Code with the same name already exists')->send();
+    if (isset($data['name'])) {
+        $stmt = $db->execute(
+            "SELECT id FROM qr_codes WHERE userId = ? AND name = ? AND id != ?",
+            [$userId, $data['name'], $qrId]
+        );
+        if ($stmt->fetch()) ApiResponse::clientError('QR code name already exists')->send();
     }
 
-    /// --- Database Update (Transaction) ---
+    // Database Update (Transaction)
     $db->execute("START TRANSACTION");
 
     try {
-        // 1. Update main qrcodes table (only name and updatedAt for now)
-        $updateBaseSql = "UPDATE qr_codes SET name = ?, updatedAt = NOW() WHERE id = ? AND userId = ?";
-        $updateBaseStmt = $db->execute($updateBaseSql, [trim($input['name']), $qrId, $userId]);
+        // Update main QR codes table
+        $baseFields = ['name', 'updatedAt' => 'NOW()'];
+        $baseParams = [trim($input['name']), $qrId, $userId];
+        
+        $db->execute(
+            "UPDATE qr_codes SET name = ?, updatedAt = NOW() WHERE id = ? AND userId = ?",
+            $baseParams
+        );
 
-        // Check if the base update failed unexpectedly (e.g., DB error)
-        if (!$updateBaseStmt) {
-            throw new Exception("Failed to execute base QR code update for ID: $qrId");
-        }
-
-        // 2. Update type-specific table
-        $specificTableName = $typeConfig['table'];
-        $specificFields = $typeConfig['fields'];
+        // Update type-specific table
         $setParts = [];
         $params = [];
         
         foreach ($specificFields as $field) {
-            // Check if the field was provided in the input data
-            if (array_key_exists($field, $input)) {
-                // Use backticks for safety
+            if (isset($data[$field])) {
                 $setParts[] = "`$field` = ?";
-                // Trim string inputs, handle other types if necessary
-                $params[] = is_string($input[$field]) ? trim($input[$field]) : $input[$field];
+                $params[] = is_string($data[$field]) ? trim($data[$field]) : $data[$field];
             }
         }
 
-        // Only run the update if there are specific fields to update
         if (!empty($setParts)) {
-            $params[] = $qrId; // Add qrId for the WHERE clause
-            $updateSpecificSql = "UPDATE `$specificTableName` SET " . implode(', ', $setParts) . " WHERE qrCodeId = ?";
-            $updateSpecificStmt = $db->execute($updateSpecificSql, $params);
+            $params[] = $qrId;
+            $db->execute(
+                "UPDATE {$typeConfig['table']} SET " . implode(', ', $setParts) . " WHERE qrCodeId = ?",
+                $params
+            );
+        }
 
-            if (!$updateSpecificStmt) {
-                throw new Exception("Failed to execute specific QR code update for type '{$type}', ID: $qrId");
-            }
-        } 
-        
         $db->execute("COMMIT");
     } catch (Exception $e) {
         $db->execute("ROLLBACK");
@@ -125,16 +113,22 @@ try {
          WHERE q.id = ?",
         [$qrId]
     );
-    $updatedQr = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
+    $updatedQr = $stmt->fetch(PDO::FETCH_ASSOC);
+    if ($updatedQr) unset($updatedQr['qrCodeId']);
 
-    ApiResponse::success('QR Code updated successfully', $updatedQr ?? null)->send();
+    ApiResponse::success('QR code updated', $updatedQr)->send();
 } catch (Exception $e) {
     ApiResponse::internalServerError($e->getMessage())->send();
 }
 
-// Helper validation function (would be in /lib/validation.php)
+// Simplified validation function
 function validateData(array $data, array $rules): array {
     $errors = [];
-    // Implement validation logic here
+    foreach ($rules as $field => $rule) {
+        if (str_contains($rule, 'required') && empty($data[$field])) {
+            $errors[$field] = "$field is required";
+        }
+    }
     return $errors;
 }

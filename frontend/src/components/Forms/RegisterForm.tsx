@@ -124,10 +124,7 @@ const RegisterForm = () => {
                     )}
                 />
                 <p className="text-xs text-gray-300">
-                    By creating an account, you agree to QuantumQR&apos;s{" "}
-                    <Link href={"/policies/privacy-policy"} className="underline text-blue-400">Privacy Policy</Link>
-                    {" "}and{" "}
-                    <Link href={"/policies/terms-of-service"} className="underline text-blue-400">Terms of Service</Link>.
+                    By creating an account, you agree to QuantumQR&apos;s{" "}Privacy Policy{" "}and{" "}Terms of Service.
                 </p>
 
                 <Button
