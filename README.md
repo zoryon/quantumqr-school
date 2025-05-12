@@ -1,2 +1,9 @@
-`$ npx prisma db pull`
-`$ npx prisma generate`
+- CMD </br>
+`$ git clone https://github.com/zoryon/quantumqr-school.git` </br>
+`$ cd quantumqr-school` </br>
+`$ code .` </br>
+
+- VSC </br>
+`$ cd frontend` </br>
+`$ npx prisma db pull` </br>
+`$ npx prisma generate` </br>
