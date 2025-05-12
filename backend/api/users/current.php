@@ -3,43 +3,34 @@
 require_once '../../vendor/autoload.php';
 require_once '../../db/DB.php';
 require_once '../../db/ApiResponse.php';
-require_once '../../lib/session.php';
+require_once '../../lib/session.php'; 
 
-$SESSION_SECRET = '171ba917ee3c87ccc7628e79e96e6804dd0c416b8e01b6a55051a0442bbc5e85';
+if ($_SERVER['REQUEST_METHOD'] !== 'GET') ApiResponse::methodNotAllowed()->send();
 
-if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
-    ApiResponse::methodNotAllowed()->send();
-}
+$db = DB::getInstance();
 
 try {
-    $db = DB::getInstance();
+    // Check for an existing session and get the user ID
+    $userId = getIdFromSessionToken($_COOKIE['session_token'] ?? ''); 
+    if (!$userId) ApiResponse::unauthorized('You are not logged in or your session has expired')->send();
+    if (isBanned($userId)) ApiResponse::forbidden("You are currently under a ban")->send();
 
-    // Check existing session
-    $userId = getIdFromSessionToken($_COOKIE['session_token']);
-    if (!$userId) {
-        ApiResponse::notFound()->send();
-    }
-
-    if (isBanned($userId)) {
-        ApiResponse::forbidden("You are currently under a ban")->send();
-    }
-
-    // Find confirmed user
+    // Select user details from active_users, join with subscriptions and tiers to get tier name.
+    // Using subqueries to count QR codes and sum their scans for this user.
     $query = "SELECT u.*, t.name AS tier,
-            (SELECT COUNT(*) FROM qr_codes WHERE userId = u.id) AS qrCodesCount,
-            (SELECT SUM(scans) FROM qr_codes WHERE userId = u.id) AS totalScans
-          FROM active_users AS u
-          JOIN subscriptions s ON u.id = s.userId
-          JOIN tiers t ON s.tierId = t.id
-          WHERE u.id = ?";
+              (SELECT COUNT(*) FROM qr_codes WHERE userId = u.id) AS qrCodesCount,
+              (SELECT SUM(scans) FROM qr_codes WHERE userId = u.id) AS totalScans
+           FROM active_users AS u
+           JOIN subscriptions s ON u.id = s.userId
+           JOIN tiers t ON s.tierId = t.id
+           WHERE u.id = ?"; // Filter by the current user's ID
+
     $stmt = $db->execute($query, [$userId]);
     $userData = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    if (!$userData || empty($userData)) {
-        ApiResponse::notFound('User not found or subscription missing')->send();
-    }
+    if (!$userData || empty($userData)) ApiResponse::notFound('User data not found')->send(); 
 
-    ApiResponse::success('User found successfully', $userData)->send();
+    ApiResponse::success('User data retrieved successfully', $userData)->send();
 } catch (Exception $e) {
     ApiResponse::internalServerError($e->getMessage())->send();
 }

@@ -5,7 +5,6 @@ require_once '../../db/DB.php';
 require_once '../../db/ApiResponse.php';
 require_once '../../lib/session.php';
 
-// Handle GET request
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     ApiResponse::methodNotAllowed()->send();
 }
@@ -13,30 +12,24 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 try {
     $db = DB::getInstance();
 
-    // Check existing session
+    // Check for an existing session and get the user ID
     $userId = getIdFromSessionToken($_COOKIE['session_token']);
-    if (!$userId) {
-        ApiResponse::notFound()->send();
-    }
+    if (!$userId) ApiResponse::notFound()->send(); 
 
-    if (isBanned($userId)) {
-        ApiResponse::forbidden("You are currently under a ban")->send();
-    }
+    if (isBanned($userId)) ApiResponse::forbidden("You are currently under a ban")->send();
 
-    // Find confirmed user
+    // Find the user by ID and confirm they have the ADMIN role
     $user = $db->selectOne("active_users", [
-        "id" => $userId, 
-        "role" => UserRole::ADMIN->value,
+        "id" => $userId,
+        "role" => UserRole::ADMIN->value, 
     ]);
 
-    if (!$user || empty($user)) {
-        ApiResponse::notFound('User not found')->send();
-    }
+    if (!$user || empty($user)) ApiResponse::notFound('User not found or not authorized')->send(); 
 
+    // Select all promotion requests that have not been reviewed yet (reviewedAt is null)
     $promotionRequests = $db->select("promotion_requests", [ "reviewedAt" => null ]);
-    if ($promotionRequests === null) {
-        ApiResponse::internalServerError()->send();
-    } 
+    // Handle database query failure
+    if ($promotionRequests === null) ApiResponse::internalServerError()->send(); 
 
     ApiResponse::success('Promotion requests found successfully', $promotionRequests)->send();
 } catch (Exception $e) {

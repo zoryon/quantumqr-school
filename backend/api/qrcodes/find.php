@@ -9,79 +9,67 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     ApiResponse::methodNotAllowed()->send();
 }
 
+// Define mapping between QR type names and their corresponding database tables
 const TYPE_MAPPING = [
     'vCards' => 'vcard_qr_codes',
     'classics' => 'classic_qr_codes',
 ];
 
-
 $db = DB::getInstance();
 
 try {
-    $userId = null;
-    $sessionToken = $_COOKIE['session_token'] ?? '';
-    
-    // Retrieve user ID if session token is valid
-    if ($sessionToken) {
-        $userId = getIdFromSessionToken($sessionToken);
-    }
-    
-    // Check if the user is banned only if logged in
-    if ($userId && isBanned($userId)) {
-        ApiResponse::forbidden("You are currently under a ban")->send();
-    }
+    // Attempt to retrieve user ID if a session token exists
+    $userId = getIdFromSessionToken($_COOKIE['session_token'] ?? ''); 
+    if ($userId && isBanned($userId)) ApiResponse::forbidden("You are currently under a ban")->send();
 
+    // Get QR code ID and type from query parameters
     $qrCodeId = $_GET['id'] ?? null;
     $type = $_GET['type'] ?? null;
 
-    if (!$qrCodeId || !filter_var($qrCodeId, FILTER_VALIDATE_INT)) {
-        ApiResponse::clientError('Invalid QR code ID')->send();
-    }
+    // Validate required query parameters
+    if (!$qrCodeId || !filter_var($qrCodeId, FILTER_VALIDATE_INT)) ApiResponse::clientError('Invalid or missing QR code ID')->send();
 
-    if (!$type || !array_key_exists($type, TYPE_MAPPING)) {
-        ApiResponse::clientError('Invalid or missing QR code type')->send();
-    }
+    if (!$type || !array_key_exists($type, TYPE_MAPPING)) ApiResponse::clientError('Invalid or missing QR code type')->send();
 
-    // Fetch base QR Code
+    // Fetch the base QR code data from the main table using the provided ID
     $baseQr = $db->selectOne("qr_codes", ["id" => $qrCodeId]);
 
-    if (empty($baseQr)) {
-        ApiResponse::notFound('QR Code not found')->send();
-    }
+    if ($baseQr === null || empty($baseQr)) ApiResponse::notFound('QR Code not found')->send();
 
-    // Check if the current user is the owner
+    // Determine if the current logged-in user is the owner of this QR code
     $isOwner = $userId !== null && (int)$userId === (int)$baseQr['userId'];
 
-    // Fetch Type-Specific Data
+    // Determine the specific table name based on the validated QR type
     $specificTableName = TYPE_MAPPING[$type];
+    
+    // Fetch the type-specific data from the corresponding table
     $specificData = $db->selectOne($specificTableName, ["qrCodeId" => $qrCodeId]);
+    if ($specificData === null) ApiResponse::notFound('Detailed QR code data not found for this type')->send(); 
 
-    if ($specificData === null) {
-        ApiResponse::notFound('Detailed QR code data not found')->send();
-    }
-
-    // Remove the primary key (qrCodeId) from the response
+    // Remove the foreign key ('qrCodeId') from the type-specific data before returning
     unset($specificData['qrCodeId']);
 
+    // Build the core response array, including common fields and ownership status
     $response = [
         'type' => $type,
         'isOwner' => $isOwner,
-        'url' => $baseQr['url']
+        'url' => $baseQr['url'] 
     ];
 
-    // Add all specific fields dynamically
+    // Dynamically add all fields from the fetched type-specific data to the response
     foreach ($specificData as $key => $value) {
         $response[$key] = $value;
     }
 
-    // Include owner-specific details if the user is the owner
+    // If the requesting user is the owner, include additional owner-specific details
     if ($isOwner) {
         $response = array_merge($response, [
             'id' => (int)$baseQr['id'],
             'name' => $baseQr['name'],
             'userId' => (int)$baseQr['userId'],
             'createdAt' => $baseQr['createdAt'],
-            'scans' => (int)$baseQr['scans']
+            'updatedAt' => $baseQr['updatedAt'],
+            'scans' => (int)$baseQr['scans'],
         ]);
     }
 

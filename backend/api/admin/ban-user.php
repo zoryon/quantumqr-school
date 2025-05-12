@@ -9,34 +9,30 @@ if ($_SERVER['REQUEST_METHOD'] !== "POST") {
 }
 
 try {
+    // Get the user ID from the session token in the cookie
     $userId = getIdFromSessionToken($_COOKIE["session_token"]);
-    if (!$userId) {
-        ApiResponse::notFound()->send();
-    }
-
-    if (isBanned($userId)) {
-        ApiResponse::forbidden("You are currently under a ban")->send();
-    }
+    if (!$userId) ApiResponse::notFound()->send();
+    if (isBanned($userId)) ApiResponse::forbidden("You are currently under a ban")->send();
 
     $db = DB::getInstance();
 
+    // Get and decode the JSON input from the request body
     $input = json_decode(file_get_contents('php://input'), true);
-    if (!isset($input["banEmail"])) {
-        ApiResponse::clientError("Must select a user email to ban")->send();
-    }
 
+    // Validate input: ensure the 'banEmail' key is present
+    if (!isset($input["banEmail"])) ApiResponse::clientError("Must select a user email to ban")->send();
+
+    // Find the user to be ban in the active_users table by email
     $user = $db->selectOne("active_users", ["email" => $input["banEmail"]]);
-    if ($user === null) {
-        ApiResponse::clientError("User doesn't exists or is already banned")->send();
-    }
+    if ($user === null) ApiResponse::clientError("User doesn't exists or is already banned")->send();
 
+    // Insert a new record into the banned_users table
     $success = $db->insert("banned_users", [
-        "userId" => $user["id"],
-        "bannerAdminId" => $userId,
+        "userId" => $user["id"],    // The ID of the user being banned
+        "bannerAdminId" => $userId, // The ID of the admin performing the ban
     ]);
-    if ($success === null) {
-        ApiResponse::internalServerError()->send();
-    }
+    // Handle database insertion failure
+    if ($success === null) ApiResponse::internalServerError()->send(); 
 
     ApiResponse::success("User banned successfully", true)->send();
 } catch (Exception $e) {
