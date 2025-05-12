@@ -7,3 +7,4 @@
 `$ cd frontend` </br>
 `$ npx prisma db pull` </br>
 `$ npx prisma generate` </br>
+`$ npm run dev` </br>
