@@ -22,7 +22,7 @@ const TYPE_MAPPING = [
     ]
 ];
 
-if ($_SERVER['REQUEST_METHOD'] !== 'PUT')  ApiResponse::methodNotAllowed()->send();
+if ($_SERVER['REQUEST_METHOD'] !== 'PUT') ApiResponse::methodNotAllowed()->send();
 
 $db = DB::getInstance();
 
@@ -72,11 +72,10 @@ try {
         if ($stmt->fetch()) ApiResponse::clientError('QR code name already exists')->send();
     }
 
-    // Begin a transaction to ensure both updates (main table and type-specific) are atomic
+    // Begin a transaction
     $db->execute("START TRANSACTION");
 
     try {
-        // Update the main 'qr_codes' table with common fields like name and updated timestamp
         $db->execute(
             "UPDATE qr_codes SET name = ?, updatedAt = NOW() WHERE id = ? AND userId = ?",
             [trim($input['name']), $qrId, $userId]
