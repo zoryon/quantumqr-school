@@ -4,6 +4,7 @@ export const API_CONFIG = {
   users: {
     current: { method: "GET" },
     requestPromotion: { method: "POST" },
+    changeUsername: { method: "POST" },
   },
   admin: {
     findPromotions: { method: "GET" },

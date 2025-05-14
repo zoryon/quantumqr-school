@@ -5,10 +5,34 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useRouter } from "next/navigation";
 import { useUserData } from "@/hooks/use-user-data";
+import { useState } from "react";
+import { Input } from "@/components/ui/input";
+import ConfirmationDialog from "@/components/ConfirmationDialog";
+import { ResultType } from "@/types";
+import { api } from "@/lib/endpoint-builder";
 
 const ProfilePage = () => {
     const { userData } = useUserData();
     const router = useRouter();
+    const [isEditing, setIsEditing] = useState(false);
+    const [newUsername, setNewUsername] = useState(userData?.username || "");
+    const [showConfirmationDialog, setShowConfirmationDialog] = useState(false);
+
+    async function handleChangeUsername() {
+        const res: ResultType = await fetch(api.users.changeUsername.toString(), {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ username: newUsername }),
+        }).then(res => res.json());
+
+        if (!res.success) console.error(res.message);
+
+        setIsEditing(false);
+        setShowConfirmationDialog(false);
+        window.location.href = "/profile";
+    }
 
     return userData && (
         <div className="min-h-screen bg-gray-900 text-gray-100">
@@ -24,15 +48,41 @@ const ProfilePage = () => {
                         </Avatar>
                         <div className="text-center space-y-4">
                             <div className="flex justify-center items-center gap-3">
-                                <h1 className="text-4xl font-bold">{userData.username}</h1>
-                                <i className="fa-solid fa-pen-to-square text-xs text-gray-400 cursor-pointer" />
+                                {isEditing ? (
+                                    <Input
+                                        value={newUsername}
+                                        onChange={(e) => setNewUsername(e.target.value)}
+                                        className="bg-transparent border-none text-4xl font-bold focus:outline-none focus:ring-2 focus:ring-purple-400"
+                                        autoFocus
+                                    />
+                                ) : (
+                                    <h1 className="text-4xl font-bold">{userData.username}</h1>
+                                )}
+                                <i
+                                    onClick={() =>
+                                        isEditing
+                                            ? setShowConfirmationDialog(true)
+                                            : setIsEditing(true)
+                                    }
+                                    className={`fa-solid ${isEditing ? "fa-check" : "fa-pen-to-square"
+                                        } text-xs text-gray-400 cursor-pointer`}
+                                />
+                                {isEditing && (
+                                    <i
+                                        onClick={() => setIsEditing(false)}
+                                        className="fa-solid fa-xmark text-xs text-gray-400 cursor-pointer"
+                                    />
+                                )}
                             </div>
                             <div className="flex items-center gap-2">
-                                <Badge variant="outline" className="bg-purple-600/20 text-purple-300 border-purple-400/30">
+                                <Badge
+                                    variant="outline"
+                                    className="bg-purple-600/20 text-purple-300 border-purple-400/30"
+                                >
                                     {userData.tier} plan
                                 </Badge>
-                                <i 
-                                    className="fa-regular fa-circle-up text-xl text-yellow-500 cursor-pointer" 
+                                <i
+                                    className="fa-regular fa-circle-up text-xl text-yellow-500 cursor-pointer"
                                     onClick={() => router.push("/profile/upgrade")}
                                 />
                             </div>
@@ -48,22 +98,26 @@ const ProfilePage = () => {
                     <Card className="bg-gray-800/50 border-gray-700 col-span-1 md:col-span-3">
                         <CardContent className="grid grid-cols-3 divide-x divide-gray-700 py-4 text-sm md:text-base lg:text-2xl">
                             <div className="text-center p-4">
-                                <p className="font-bold text-purple-400">{userData.qrCodesCount}</p>
+                                <p className="font-bold text-purple-400">
+                                    {userData.qrCodesCount}
+                                </p>
                                 <p className="text-sm text-gray-400">QR Codes</p>
                             </div>
                             <div className="text-center p-4">
-                                <p className="font-bold text-indigo-400">{userData.totalScans}</p>
+                                <p className="font-bold text-indigo-400">
+                                    {userData.totalScans}
+                                </p>
                                 <p className="text-sm text-gray-400">Total scans</p>
                             </div>
                             <div className="text-center p-4">
                                 <p className="font-bold text-blue-400">
-                                    {new Date(userData.createdAt!).toLocaleString('en-GB', {
+                                    {new Date(userData.createdAt!).toLocaleString("en-GB", {
                                         year: "numeric",
                                         month: "short",
-                                        day: "numeric", 
+                                        day: "numeric",
                                         weekday: "short",
                                         hour: "numeric",
-                                        minute: "numeric"
+                                        minute: "numeric",
                                     }) ?? "null"}
                                 </p>
                                 <p className="text-sm text-gray-400">Since</p>
@@ -103,8 +157,17 @@ const ProfilePage = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Confirmation Dialog */}
+            <ConfirmationDialog
+                isOpen={showConfirmationDialog}
+                onConfirm={handleChangeUsername}
+                onCancel={() => setShowConfirmationDialog(false)}
+                title="Confirm Username Change"
+                message={`Are you sure you want to change your username to "${newUsername}"?`}
+            />
         </div>
     );
-}
+};
 
 export default ProfilePage;
