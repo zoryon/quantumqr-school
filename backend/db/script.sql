@@ -1,4 +1,5 @@
 -- DBs AND TABLES' SQL SCRIPT
+DROP DATABASE IF EXISTS quantumqr;
 CREATE DATABASE quantumqr;
 USE quantumqr;
 

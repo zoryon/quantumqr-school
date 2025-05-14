@@ -24,7 +24,7 @@ try {
     if (empty($input['password']) || empty($input['passwordConfirmation'])) ApiResponse::clientError('Password and confirmation are required')->send();
 
     // Validate password length
-    if (strlen($input['password']) < 5) ApiResponse::clientError('Password must be at least 5 characters long')->send();
+    if (strlen($input['password']) < 4) ApiResponse::clientError('Password must be at least 5 characters long')->send();
 
     // Check if password and confirmation match
     if ($input['password'] !== $input['passwordConfirmation']) ApiResponse::clientError('Passwords do not match')->send();
