@@ -44,7 +44,7 @@ try {
         ApiResponse::clientError('Username must be at least 2 characters long')->send();
     }
 
-    if (strlen($input['password']) < 5) {
+    if (strlen($input['password']) < 4) {
         ApiResponse::clientError('Password must be at least 5 characters long')->send();
     }
 
