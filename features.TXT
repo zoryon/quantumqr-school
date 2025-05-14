@@ -1,0 +1,83 @@
+1. AUTENTICAZIONE
+    1.1 REGISTRAZIONE
+    - Alla creazione di un account verrà inviata una email di conferma con link da cliccare.
+      Il link porterà ad una pagina che verificherà l'email in modo automatico.
+    - Se l'email non viene verificata in 10 minuti, il record della tabella users viene cancellato automaticamente.
+    - Ogni account appena verificato, avrà in automaticato anche un abbonamento di livello gratis.
+    - Le password sono hashate
+
+    1.2 ACCESSO
+    - L'accesso si può effettuare mettendo email o username + password.
+    - Le richieste di accesso controllano gli utenti nella view active_users e non users
+    - Se la richiesta viene accettata, viene creato un cookie con payload (userId) cryptato tramite secret.
+      In questo modo, le API possono prendere l'utente corrente senza doversi fidare di aver ricevuto l'ID corretto (impersonificazione).
+
+    1.3 PASSWORD DIMENTICATA
+    - Si può richiedere un email con link per resettare la password immettendo email o username.
+    - Il link conterrà, tramite query string, un token con payload cryptato (userId).
+      Cliccando si andrà alla pagina di reset.
+    - Raggiunta la pagina si deve inserire la nuova password due volte.
+    - Verrà poi fatta richiesta al server per modificare la password (sempre hashata).
+      Il risultato dell'operazione dipende dal token: se validamente cryptato tramite la giusta chiave
+      avverrà con successo, altrimenti no.
+
+
+2. GESTIONE QR CODE
+    2.1 CREAZIONE QR CODE
+    - Classic: porta ad un semplice url
+    - vCard: porta ad una pagina del sito stesso con le informazioni immesse.
+      Si tratta di una vera e propria carta di presentazione virtuale.
+
+    2.2 MODIFICA QR CODE
+
+    2.3 CANCELLAZIONE SINGOLA QR CODE + CANCELLAZIONE DI GRUPPO
+
+    2.4 TROVA URL QR CODE
+
+    2.5 PAGINA VCARD
+
+    2.6 PAGINA REDIRECT
+    - I classic QR Code puntano SEMPRE a questa pagina.
+      In questo modo è possibile:
+      # Tener traccia del numero di scansioni
+      # Avere sempre la stessa immagine del QR Code che però punta ad un link aggiornato al millesimo 
+
+    2.7 NUMERO SCANSIONI PER QR CODE
+
+    2.8 NUMERO MASSIMO DI QR CODE CREABILI
+    - Ogni utente ha un abbonamento gratis all'inizio, il quale ha massimo 10 QR Code.
+      Tuttavia sarà possibile fare un upgrade successivamente.
+
+    2.9 ACCEDERE ALLE PAGINE DI ALTRI QR CODE (VCARD E CLASSICS, ma non edit)
+    - Ogni utente può accedere alle pagine di tutti i QR Code, anche se sloggato ovviamente.
+      In caso contrario nessuno potrebbe accedere al contenuto dei QR Code, dato che ognuno di essi
+      passa per il sito stesso.
+
+
+3. FILTRA QR CODE PER NOME
+
+
+4. PROFILO
+    4.1 CAMBIARE NOME
+
+    4.2 VEDERE STATISTICHE
+
+    4.3 CAMBIARE TIER DELL'ABBONAMENTO
+    - Ogni piano ha un numero massimo di QR Code creabili ed un prezzo.
+
+5. AMMINISTRAZIONE
+    5.1 RICHIEDERE RUOLO AMMINISTRATORE
+    - Le pagine riservate agli amministratori risultano accessibili anche agli utenti non autorizzati.
+      Quest'ultimi vedranno, tuttavia, solo un form per richiedere di avere priveligi da amministratore.
+      Un utente può inviare solo una singola richiesta.
+
+    5.2 ACCEDERE STESSA PAGINA MA CON ACCOUNT AMMINISTRATORE
+    - Un amministratore, invece, vedrà il sito effettivo e potrà effettuare il suo lavoro.
+
+    5.3 VEDERE STATISTICHE SUL SITO
+
+    5.4 BANNARE UTENTI
+    - Ogni amministratore può vedere le statistiche degli utenti.
+    - Ogni amministratore può bannare tutti gli utenti che NON sono amministratori.
+
+    5.5 ACCCETTARE / RIFIUTARE RICHIESTE DI PROMOZIONE AD AMMINISTRATORE
