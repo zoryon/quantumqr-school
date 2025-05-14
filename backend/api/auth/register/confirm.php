@@ -1,17 +1,13 @@
 <?php
 
-require_once '../../../vendor/autoload.php';
-require_once '../../../db/DB.php';
-require_once '../../../db/ApiResponse.php';
-
+require_once __DIR__ . '/../../../bootstrap.php';
+require_once __DIR__ .'';
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 use Firebase\JWT\ExpiredException;
 use Firebase\JWT\SignatureInvalidException;
 
-if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
-    ApiResponse::methodNotAllowed()->send();
-}
+if ($_SERVER['REQUEST_METHOD'] !== 'GET') ApiResponse::methodNotAllowed()->send();
 
 // Get the 'token' from the query parameters
 $token = $_GET['token'] ?? null; 

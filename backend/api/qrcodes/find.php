@@ -1,13 +1,8 @@
 <?php
 
-require_once '../../vendor/autoload.php';
-require_once '../../db/DB.php';
-require_once '../../db/ApiResponse.php';
-require_once '../../lib/session.php';
+require_once __DIR__ . '/../../bootstrap.php';
 
-if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
-    ApiResponse::methodNotAllowed()->send();
-}
+if ($_SERVER['REQUEST_METHOD'] !== 'GET') ApiResponse::methodNotAllowed()->send();
 
 // Define mapping between QR type names and their corresponding database tables
 const TYPE_MAPPING = [

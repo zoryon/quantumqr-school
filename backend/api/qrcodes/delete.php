@@ -1,13 +1,8 @@
 <?php
 
-require_once '../../vendor/autoload.php';
-require_once '../../db/DB.php';
-require_once '../../db/ApiResponse.php';
-require_once '../../lib/session.php'; 
+require_once __DIR__ . '/../../bootstrap.php';
 
-if ($_SERVER['REQUEST_METHOD'] !== 'DELETE') {
-    ApiResponse::methodNotAllowed()->send();
-}
+if ($_SERVER['REQUEST_METHOD'] !== 'DELETE') ApiResponse::methodNotAllowed()->send();
 
 $db = DB::getInstance();
 

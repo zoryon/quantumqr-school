@@ -1,8 +1,6 @@
 <?php
 
-require_once '../../../vendor/autoload.php';
-require_once '../../../db/DB.php';
-require_once '../../../db/ApiResponse.php';
+require_once __DIR__ . '/../../../bootstrap.php';
 
 use Firebase\JWT\JWT;
 use PHPMailer\PHPMailer\PHPMailer;
@@ -12,9 +10,7 @@ $MAILER_SECRET = '0f98a88ce3ca074d1db8b8fe7d1f77e3c3153b5a667a5d105194511daced53
 $WEBSITE_URL = 'http://localhost:3000'; // Base URL for the email confirmation link
 $SMTP_FROM = 'auth@quantumqr.it'; // Sender email address for confirmation emails
 
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    ApiResponse::methodNotAllowed()->send();
-};
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') ApiResponse::methodNotAllowed()->send();
 
 $db = DB::getInstance();
 

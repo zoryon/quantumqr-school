@@ -1,16 +1,12 @@
 <?php
 
-require_once '../../vendor/autoload.php';
-require_once '../../db/DB.php';
-require_once '../../db/ApiResponse.php';
+require_once __DIR__ . '/../../bootstrap.php';
 
 use Firebase\JWT\JWT;
 
 $SESSION_SECRET = '171ba917ee3c87ccc7628e79e96e6804dd0c416b8e01b6a55051a0442bbc5e85'; // Secret key for JWT session tokens
 
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    ApiResponse::methodNotAllowed()->send();
-};
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') ApiResponse::methodNotAllowed()->send();
 
 $db = DB::getInstance();
 

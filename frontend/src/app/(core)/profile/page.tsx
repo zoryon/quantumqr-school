@@ -23,7 +23,10 @@ const ProfilePage = () => {
                             </AvatarFallback>
                         </Avatar>
                         <div className="text-center space-y-4">
-                            <h1 className="text-4xl font-bold">{userData.username}</h1>
+                            <div className="flex justify-center items-center gap-3">
+                                <h1 className="text-4xl font-bold">{userData.username}</h1>
+                                <i className="fa-solid fa-pen-to-square text-xs text-gray-400 cursor-pointer" />
+                            </div>
                             <div className="flex items-center gap-2">
                                 <Badge variant="outline" className="bg-purple-600/20 text-purple-300 border-purple-400/30">
                                     {userData.tier} plan
@@ -43,18 +46,27 @@ const ProfilePage = () => {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                     {/* Stats Section */}
                     <Card className="bg-gray-800/50 border-gray-700 col-span-1 md:col-span-3">
-                        <CardContent className="grid grid-cols-3 divide-x divide-gray-700 py-4">
+                        <CardContent className="grid grid-cols-3 divide-x divide-gray-700 py-4 text-sm md:text-base lg:text-2xl">
                             <div className="text-center p-4">
-                                <p className="text-2xl font-bold text-purple-400">{userData.qrCodesCount}</p>
-                                <p className="text-gray-400">QR Codes</p>
+                                <p className="font-bold text-purple-400">{userData.qrCodesCount}</p>
+                                <p className="text-sm text-gray-400">QR Codes</p>
                             </div>
                             <div className="text-center p-4">
-                                <p className="text-2xl font-bold text-indigo-400">{userData.totalScans}</p>
-                                <p className="text-gray-400">Total scans</p>
+                                <p className="font-bold text-indigo-400">{userData.totalScans}</p>
+                                <p className="text-sm text-gray-400">Total scans</p>
                             </div>
                             <div className="text-center p-4">
-                                <p className="text-2xl font-bold text-blue-400">{userData.createdAt!.toLocaleString("it-IT") ?? "null"}</p>
-                                <p className="text-gray-400">Since</p>
+                                <p className="font-bold text-blue-400">
+                                    {new Date(userData.createdAt!).toLocaleString('en-GB', {
+                                        year: "numeric",
+                                        month: "short",
+                                        day: "numeric", 
+                                        weekday: "short",
+                                        hour: "numeric",
+                                        minute: "numeric"
+                                    }) ?? "null"}
+                                </p>
+                                <p className="text-sm text-gray-400">Since</p>
                             </div>
                         </CardContent>
                     </Card>
@@ -62,7 +74,7 @@ const ProfilePage = () => {
                     {/* Bio Section */}
                     <Card className="bg-gray-800/50 border-gray-700 md:col-span-2">
                         <CardHeader className="text-xl font-semibold border-b border-gray-700">
-                            Quantum Profile
+                            Profile
                         </CardHeader>
                         <CardContent className="pt-4 text-gray-300 leading-relaxed">
                             {"No bio available. Describe your expertise!"}
@@ -82,9 +94,10 @@ const ProfilePage = () => {
 
                         <Card className="bg-gray-800/50 border-gray-700">
                             <CardHeader className="text-lg font-semibold border-b border-gray-700">
-                                Expertise
+                                Role
                             </CardHeader>
                             <CardContent className="pt-4 flex flex-wrap gap-2">
+                                {userData.role[0].toUpperCase() + userData.role.slice(1)}
                             </CardContent>
                         </Card>
                     </div>

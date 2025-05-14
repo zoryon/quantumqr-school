@@ -20,11 +20,11 @@ export type User = {
 /**
  * Represents a PublicUser with safe-to-expose fields + subscription tier.
  * 
- * - Omits sensitive `id` and `password` fields
+ * - Omits sensitive `password` field
  * - Includes `tier` from subscription data
  * - Maintains `createdAt` for profile information
  */
-export type PublicUser = Omit<User, "id" | "password"> & {
+export type PublicUser = Omit<User, "password"> & {
     tier: string;
     qrCodesCount: number;
     totalScans: number;

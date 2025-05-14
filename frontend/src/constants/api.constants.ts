@@ -10,6 +10,7 @@ export const API_CONFIG = {
     reviewPromotion: { method: "POST" },
     banUser: { method: "POST" },
     findAllUsers: { method: "GET" },
+    appStats: { method: "GET" },
   },
   qrcodes: {
     find: { method: "GET" },

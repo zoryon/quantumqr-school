@@ -22,17 +22,17 @@ const BanUsersPage = () => {
         fetchUserList();
     }, []);
 
-    async function handleBanUser(email: string) {
+    async function handleBanUser(id: number, email: string) {
         const confirmBan = window.confirm(`Are you sure you want to ban ${email}?`);
         if (!confirmBan) return;
 
         const res: ResultType = await fetch(api.admin.banUser.toString(), {
             method: "POST",
-            body: JSON.stringify({ banEmail: email })
+            body: JSON.stringify({ banId: id })
         }).then(res => res.json());
 
         if (res.success) {
-            setUserList(prev => prev.filter(user => user.email !== email));
+            setUserList(prev => prev.filter(user => user.id !== id));
         } else {
             console.error(res.message);
             alert("Failed to ban user");
@@ -88,7 +88,7 @@ const BanUsersPage = () => {
                                         })}
                                     </p>
                                     <button
-                                        onClick={() => handleBanUser(user.email)}
+                                        onClick={() => handleBanUser(user.id, user.email)}
                                         className="bg-red-500/20 hover:bg-red-500/30 text-red-400 px-3 py-1 rounded-lg transition-colors"
                                     >
                                         <i className="fas fa-ban mr-2"></i>

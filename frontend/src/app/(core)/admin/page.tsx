@@ -1,17 +1,34 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ADMIN_ACTIVITIES } from "@/constants";
 import { useUserData } from "@/hooks/use-user-data";
 import { cn } from "@/lib/utils";
-import { AdminActivity } from "@/types";
+import { AdminActivity, ResultType } from "@/types";
 import Link from "next/link";
+import { api } from "@/lib/endpoint-builder";
 
 const AdminDashboard = () => {
     const [usersCount, setUsersCount] = useState<number>(0);
-    const [reviewsCount, setReviewsCount] = useState<number>(0);
+    const [pendingReviewsCount, setPendingReviewsCount] = useState<number>(0);
     
     const { userData } = useUserData();
+
+    useEffect(() => {
+        async function fetchStats() {
+            const res: ResultType = await fetch(api.admin.appStats.toString(), { 
+                method: "GET" 
+            }).then(res => res.json());
+
+            if (res.success) {
+                setUsersCount(res.data.usersCount);
+                setPendingReviewsCount(res.data.pendingReviewsCount);
+            } else {
+                alert(`Error: ${res.message}`);
+            }
+        }
+        fetchStats();
+    }, []);
 
     return (
         <div className="min-h-screen bg-gray-900 p-8">
@@ -43,7 +60,7 @@ const AdminDashboard = () => {
                         </div>
                         <div className="bg-gray-800/50 p-4 rounded-xl">
                             <p className="text-gray-400 text-sm mb-1">Pending Reviews</p>
-                            <p className="text-2xl font-bold text-purple-400">{reviewsCount}</p>
+                            <p className="text-2xl font-bold text-purple-400">{pendingReviewsCount}</p>
                         </div>
                     </div>
                 </div>

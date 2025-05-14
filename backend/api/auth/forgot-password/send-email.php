@@ -4,10 +4,7 @@ use Firebase\JWT\JWT;
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
-require_once '../../../vendor/autoload.php';
-require_once '../../../db/DB.php';
-require_once '../../../db/ApiResponse.php';
-require_once '../../../lib/session.php';
+require_once __DIR__ . '/../../../bootstrap.php';
 require_once '../../../lib/mailer.php'; 
 
 $WEBSITE_URL = 'http://localhost:3000'; // Base URL for the password reset link
