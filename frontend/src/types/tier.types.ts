@@ -3,7 +3,7 @@ export type Tier = {
     name: string;
     price: number;
     description: string;
-    maxQrCodes: number;
+    maxQRCodes: number;
     createdAt: Date | null;
     updatedAt: Date | null;
 }

@@ -83,7 +83,7 @@ const ProfilePage = () => {
                                 </Badge>
                                 <i
                                     className="fa-regular fa-circle-up text-xl text-yellow-500 cursor-pointer"
-                                    onClick={() => router.push("/profile/upgrade")}
+                                    onClick={() => router.push("/profile/tier")}
                                 />
                             </div>
                         </div>

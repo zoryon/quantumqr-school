@@ -24,4 +24,5 @@ export type {
     HttpMethod, 
     KebabCase,
 } from "@/types/endpoint-builder.types";
+export type { Tier } from "@/types/tier.types"
 export type { PromotionRequest, PromotionRequestReview, AdminActivity } from "@/types/admin.types"
