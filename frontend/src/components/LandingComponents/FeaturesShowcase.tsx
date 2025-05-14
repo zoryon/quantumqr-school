@@ -29,10 +29,10 @@ const FeaturesShowcase = () => (
                     animate={{ opacity: 1, y: 0 }}
                     className="text-4xl font-bold text-gray-100 mb-4"
                 >
-                    Quantum Leap in QR Management
+                    Leap in QR Management
                 </motion.h2>
                 <p className="text-xl text-gray-400 max-w-2xl mx-auto">
-                    Transform static codes into dynamic experiences with our quantum-powered platform
+                    Transform static codes into dynamic experiences with our powered platform
                 </p>
             </div>
 

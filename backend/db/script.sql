@@ -120,14 +120,70 @@ INSERT INTO tiers (name, price, description, maxQRCodes) VALUES ("Enterprise", 2
 INSERT INTO card_types (name) VALUES ("Visa");
 INSERT INTO card_types (name) VALUES ("Master Card");
 
--- HELPERS
--- CREATE ADMIN USER
--- INSERT INTO users(role, email, username, password, isEmailConfirmed) VALUES("admin", "gioelespata@gmail.com", "zoryon", "$2y$10$JHAaq6r9G04hedX/1rZqQedxk9Ymx89z1BT/HOp5gLae149Oe9nwq", true);
--- INSERT INTO subscriptions(userId, tierId) VALUES(4, 4);
+-- 20 normal users
+INSERT INTO users (role, email, username, password, isEmailConfirmed) VALUES 
+('user', 'user1@example.com', 'user1', '$2y$10$mBAzIjSZ8qHLtnyqM0saweFkOe9ISpsVG5awpmqIBUfOXOgQ2MqHO', true),
+('user', 'user2@example.com', 'user2', '$2y$10$mBAzIjSZ8qHLtnyqM0saweFkOe9ISpsVG5awpmqIBUfOXOgQ2MqHO', true),
+('user', 'user3@example.com', 'user3', '$2y$10$mBAzIjSZ8qHLtnyqM0saweFkOe9ISpsVG5awpmqIBUfOXOgQ2MqHO', true),
+('user', 'user4@example.com', 'user4', '$2y$10$mBAzIjSZ8qHLtnyqM0saweFkOe9ISpsVG5awpmqIBUfOXOgQ2MqHO', true),
+('user', 'user5@example.com', 'user5', '$2y$10$mBAzIjSZ8qHLtnyqM0saweFkOe9ISpsVG5awpmqIBUfOXOgQ2MqHO', true),
+('user', 'user6@example.com', 'user6', '$2y$10$mBAzIjSZ8qHLtnyqM0saweFkOe9ISpsVG5awpmqIBUfOXOgQ2MqHO', true),
+('user', 'user7@example.com', 'user7', '$2y$10$mBAzIjSZ8qHLtnyqM0saweFkOe9ISpsVG5awpmqIBUfOXOgQ2MqHO', true),
+('user', 'user8@example.com', 'user8', '$2y$10$mBAzIjSZ8qHLtnyqM0saweFkOe9ISpsVG5awpmqIBUfOXOgQ2MqHO', true),
+('user', 'user9@example.com', 'user9', '$2y$10$mBAzIjSZ8qHLtnyqM0saweFkOe9ISpsVG5awpmqIBUfOXOgQ2MqHO', true),
+('user', 'user10@example.com', 'user10', '$2y$10$mBAzIjSZ8qHLtnyqM0saweFkOe9ISpsVG5awpmqIBUfOXOgQ2MqHO', true);
 
--- OTHER STUFF
--- UPDATE subscriptions SET tierId = 2 WHERE userId = 1;
--- UPDATE users SET isAdmin = true WHERE id = 1;
+-- 20 admin users
+INSERT INTO users (role, email, username, password, isEmailConfirmed) VALUES 
+('admin', 'admin1@example.com', 'admin1', '$2y$10$mBAzIjSZ8qHLtnyqM0saweFkOe9ISpsVG5awpmqIBUfOXOgQ2MqHO', true),
+('admin', 'admin2@example.com', 'admin2', '$2y$10$mBAzIjSZ8qHLtnyqM0saweFkOe9ISpsVG5awpmqIBUfOXOgQ2MqHO', true),
+('admin', 'admin3@example.com', 'admin3', '$2y$10$mBAzIjSZ8qHLtnyqM0saweFkOe9ISpsVG5awpmqIBUfOXOgQ2MqHO', true),
+('admin', 'admin4@example.com', 'admin4', '$2y$10$mBAzIjSZ8qHLtnyqM0saweFkOe9ISpsVG5awpmqIBUfOXOgQ2MqHO', true),
+('admin', 'admin5@example.com', 'admin5', '$2y$10$mBAzIjSZ8qHLtnyqM0saweFkOe9ISpsVG5awpmqIBUfOXOgQ2MqHO', true),
+('admin', 'admin6@example.com', 'admin6', '$2y$10$mBAzIjSZ8qHLtnyqM0saweFkOe9ISpsVG5awpmqIBUfOXOgQ2MqHO', true),
+('admin', 'admin7@example.com', 'admin7', '$2y$10$mBAzIjSZ8qHLtnyqM0saweFkOe9ISpsVG5awpmqIBUfOXOgQ2MqHO', true),
+('admin', 'admin8@example.com', 'admin8', '$2y$10$mBAzIjSZ8qHLtnyqM0saweFkOe9ISpsVG5awpmqIBUfOXOgQ2MqHO', true),
+('admin', 'admin9@example.com', 'admin9', '$2y$10$mBAzIjSZ8qHLtnyqM0saweFkOe9ISpsVG5awpmqIBUfOXOgQ2MqHO', true),
+('admin', 'admin10@example.com', 'admin10', '$2y$10$mBAzIjSZ8qHLtnyqM0saweFkOe9ISpsVG5awpmqIBUfOXOgQ2MqHO', true);
+
+-- 20 subscriptions for users (Free tier, no payment method)
+INSERT INTO subscriptions (userId, tierId)
+VALUES
+(1, 1),
+(2, 1),
+(3, 1),
+(4, 1),
+(5, 1),
+(6, 1),
+(7, 1),
+(8, 1),
+(9, 1),
+(10, 1);
+
+
+-- 20 subscriptions for admins (Pro tier)
+INSERT INTO subscriptions (userId, tierId)
+VALUES
+(11, 1),
+(12, 1),
+(13, 1),
+(14, 1),
+(15, 1),
+(16, 1),
+(17, 1),
+(18, 1),
+(19, 1),
+(20, 1);
+
+
+
+
+
+
+
+
+
+
 
 -- FUNCTIONS AND PROCEDURES
 -- Clean up unconfirmed users procedure

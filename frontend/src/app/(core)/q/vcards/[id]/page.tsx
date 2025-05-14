@@ -86,9 +86,9 @@ const VCardPage = () => {
             </div>
 
             <main className="relative mx-auto max-w-6xl px-4 py-16">
-                {/* Holographic Card Container */}
+                {/* Card Container */}
                 <div className="group relative rounded-[2.5rem] border border-gray-800 bg-gray-850 backdrop-blur-2xl shadow-2xl shadow-indigo-500/10 overflow-hidden isolate">
-                    {/* Interactive Glass Effect */}
+                    {/* Glass Effect */}
                     <div className="absolute inset-0 bg-[url('/noise.png')] opacity-10 mix-blend-soft-light" />
 
                     {/* Floating Particles */}
@@ -103,7 +103,7 @@ const VCardPage = () => {
 
                     {/* Card Content */}
                     <div className="relative grid grid-cols-1 xl:grid-cols-4 gap-8 p-10">
-                        {/* Profile Hologram */}
+                        {/* Profile */}
                         <div className="xl:col-span-1 flex flex-col items-center space-y-8">
                             <div className="relative w-48 h-48 rounded-3xl bg-indigo-500/10 border-2 border-indigo-500/20 flex items-center justify-center overflow-hidden">
                                 <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 to-purple-500/10 animate-hologram-glow" />
@@ -141,10 +141,7 @@ const VCardPage = () => {
                                         className="px-6 py-3 rounded-full bg-gradient-to-br from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 transition-all shadow-lg shadow-indigo-500/20 flex items-center cursor-pointer"
                                     />
                                     <ShareButton
-                                        url={
-                                            process.env.NEXT_PUBLIC_WEBSITE_URL +
-                                            `/qrcodes/vcards/${qrCode.qrCodeId}`
-                                        }
+                                        url={window.location.href}
                                         firstName={qrCode.firstName}
                                         lastName={qrCode.lastName}
                                     />
@@ -221,7 +218,7 @@ const VCardPage = () => {
                                 <div className="mt-4 h-1 bg-gray-700 rounded-full overflow-hidden">
                                     <div
                                         className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 animate-progress-glow"
-                                        style={{ width: "30%" }}
+                                        style={{ width: "100%" }}
                                     />
                                 </div>
                             </div>

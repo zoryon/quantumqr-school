@@ -61,5 +61,5 @@ try {
 
     ApiResponse::created('QR code created successfully', $qrCode)->send();
 } catch (Exception $e) {
-    ApiResponse::internalServerError('An error occurred while creating the QR code. Please try again.')->send(); 
+    ApiResponse::internalServerError($e->getMessage())->send(); 
 }

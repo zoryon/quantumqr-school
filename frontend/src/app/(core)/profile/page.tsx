@@ -116,8 +116,6 @@ const ProfilePage = () => {
                                         month: "short",
                                         day: "numeric",
                                         weekday: "short",
-                                        hour: "numeric",
-                                        minute: "numeric",
                                     }) ?? "null"}
                                 </p>
                                 <p className="text-sm text-gray-400">Since</p>
