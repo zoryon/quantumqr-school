@@ -23,10 +23,19 @@ try {
         ApiResponse::notFound()->send(); 
     }
 
+    $sql = "SELECT u.*, t.name AS tier,
+              (SELECT COUNT(*) FROM qr_codes WHERE userId = u.id) AS qrCodesCount,
+              (SELECT COALESCE(SUM(scans), 0) FROM qr_codes WHERE userId = u.id) AS totalScans
+           FROM active_users AS u
+           JOIN subscriptions s ON u.id = s.userId
+           JOIN tiers t ON s.tierId = t.id
+           WHERE u.role = ?";
+
     // Select all users from the active_users table where the role is USER
-    $users = $db->select('active_users', ["role" => UserRole::USER->value]);
-    // Handle database query failure
-    if ($users === null) ApiResponse::internalServerError()->send(); 
+    $stmt = $db->execute($sql, [UserRole::USER->value]);
+    if ($stmt === false) ApiResponse::internalServerError()->send(); 
+
+    $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     ApiResponse::success('User list found successfully', $users)->send();
 } catch(Exception $e) {

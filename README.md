@@ -5,6 +5,7 @@
 
 - VSC </br>
 `$ cd frontend` </br>
+`$ npm i` </br>
 `$ npx prisma db pull` </br>
 `$ npx prisma generate` </br>
 `$ npm run dev` </br>
