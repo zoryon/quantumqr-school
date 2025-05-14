@@ -28,7 +28,7 @@ const DeleteBtn = ({
         const res = await fetch(api.qrcodes.delete.toString(), {
             method: "DELETE",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ id: qrCode.id }),
+            body: JSON.stringify({ ids: [qrCode.id] }),
         });
 
         if (!res.ok) {
