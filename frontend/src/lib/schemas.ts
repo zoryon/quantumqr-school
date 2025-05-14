@@ -35,7 +35,7 @@ const emailOrUsernameSchema = z.union([
  */
 export const loginFormSchema = z.object({
     emailOrUsername: emailOrUsernameSchema,
-    password: z.string().min(5).max(60)
+    password: z.string().min(4).max(60)
 });
 
 /**
